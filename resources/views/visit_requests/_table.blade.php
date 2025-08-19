@@ -30,13 +30,22 @@
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                             @if($request->status->name == 'Approved') bg-green-100 text-green-800
                             @elseif($request->status->name == 'Rejected') bg-red-100 text-red-800
+                            @elseif($request->status->name == 'Cancelled') bg-gray-100 text-gray-800
                             @else bg-yellow-100 text-yellow-800 @endif">
                             {{ $request->status->name }}
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <a href="{{ route('requests.show', $request) }}" class="text-indigo-600 hover:text-indigo-900">Lihat Detail</a>
-
+                      <button 
+                            type="button" 
+                            class="text-indigo-600 hover:text-indigo-900"
+                            x-on:click="
+                                selectedRequest = @json($request->load(['user.profile.department']));
+                                $dispatch('open-modal', { name: 'request-detail-modal' });
+                            "
+                        >
+                            Lihat Detail
+                    </button>
                         @can('approve', $request)
                                 <form action="{{ route('requests.approve', $request) }}" method="POST" class="inline-block ml-4">
                                     @csrf @method('PATCH')
@@ -50,9 +59,9 @@
                             @endcan
 
                          @if(Auth::id() === $request->user_id && $request->status->name === 'Pending')
-                            <form action="{{ route('requests.destroy', $request) }}" method="POST" class="inline-block ml-4" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan request ini?');">
+                            <form action="{{ route('requests.cancel', $request) }}" method="POST" class="inline-block ml-4" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan request ini?');">
                                 @csrf
-                                @method('DELETE')
+                                @method('PATCH')
                                 <button type="submit" class="text-red-600 hover:text-red-900">Batalkan</button>
                             </form>
                         @endif

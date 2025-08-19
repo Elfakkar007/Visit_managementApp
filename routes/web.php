@@ -42,7 +42,9 @@ Route::middleware('auth')->group(function () {
 
     // Modul Visit Request Internal
     Route::prefix('requests')->name('requests.')->group(function () {
-        Route::get('/', [VisitRequestController::class, 'index'])->name('index');
+        Route::get('/approval', [VisitRequestController::class, 'approval'])->name('approval'); 
+        Route::get('/monitor', [VisitRequestController::class, 'monitor'])->name('monitor'); 
+        Route::get('/export', [VisitRequestController::class, 'export'])->name('export');   
         Route::get('/my-requests', [VisitRequestController::class, 'myRequests'])->name('my');
         Route::get('/create', [VisitRequestController::class, 'create'])->name('create');
         Route::get('/hrd-approval', [VisitRequestController::class, 'hrdApproval'])->name('hrd_approval');
@@ -50,7 +52,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/{visitRequest}', [VisitRequestController::class, 'show'])->name('show');
         Route::patch('/{visitRequest}/approve', [VisitRequestController::class, 'approve'])->name('approve');
         Route::patch('/{visitRequest}/reject', [VisitRequestController::class, 'reject'])->name('reject');
-        Route::delete('/{visitRequest}', [VisitRequestController::class, 'destroy'])->name('destroy');
+        Route::patch('/{visitRequest}/cancel', [VisitRequestController::class, 'cancel'])->name('cancel');
     });
 });
 

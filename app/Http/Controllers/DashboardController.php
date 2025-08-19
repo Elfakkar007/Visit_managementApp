@@ -34,8 +34,8 @@ class DashboardController extends Controller
         }
 
         if ($roleName === 'Approver') {
-            return Redirect::route('requests.index');
-        }
+            return Redirect::route('requests.approval'); // Arahkan ke rute approval        
+        }   
 
         // Default untuk peran 'Staff'
         return Redirect::route('requests.my');

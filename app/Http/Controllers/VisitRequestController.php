@@ -9,53 +9,60 @@ use App\Models\Level;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth; 
 use Illuminate\Support\Facades\Gate;
+use App\Exports\VisitRequestsExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class VisitRequestController extends Controller
 {
-    public function index()
+      public function approval()
     {
-        Gate::authorize('viewAny', VisitRequest::class);
         $user = auth()->user();
-
         $query = VisitRequest::with('user.profile.level', 'user.profile.department', 'status')
-            ->whereHas('status', function ($q) {
-                $q->where('name', 'Pending');
-            })
-            ->latest();
+        ->whereHas('status', function ($q) { $q->where('name', 'Pending'); })
+        ->latest();
+
+        
 
         $userLevel = $user->profile->level->name;
-        $userDeptId = $user->profile->department_id;
 
-         if ($user->profile->department->name === 'HRD') {
-        $query->whereHas('user.profile', function ($q) use ($userDeptId) {
-            $q->where('department_id', '!=', $userDeptId);
-            });
-        }
+        // --- LOGIKA FILTER DENGAN URUTAN YANG BENAR ---
 
-        elseif ($userLevel === 'Manager') {
+        // Terapkan filter berdasarkan level
+        if ($userLevel === 'Manager' && $user->profile->department->name !== 'HRD') {
             $query->whereHas('user.profile', function ($q) use ($user) {
                 $q->where('department_id', $user->profile->department_id)
-                  ->where('subsidiary_id', $user->profile->subsidiary_id)
-                  ->whereIn('level_id', \App\Models\Level::whereIn('name', ['Staff', 'SPV'])->pluck('id'));
+                ->where('subsidiary_id', $user->profile->subsidiary_id)
+                ->whereIn('level_id', \App\Models\Level::whereIn('name', ['Staff', 'SPV'])->pluck('id'));
             });
         } 
         elseif ($userLevel === 'Deputi') {
             $pusatId = \App\Models\Subsidiary::where('name', 'Pusat')->firstOrFail()->id;
-            $managerLevelId = \App\Models\Level::where('name', 'Manager')->firstOrFail()->id;
             
-            $query->whereHas('user.profile', function ($q) use ($user, $pusatId, $managerLevelId) {
-                $q->where('level_id', $managerLevelId)
-                  ->where(function ($subq) use ($user, $pusatId) {
-                      $subq->where('subsidiary_id', $user->profile->subsidiary_id)
-                           ->orWhere('subsidiary_id', $pusatId);
-                  });
+            $query->whereHas('user.profile', function ($q) use ($user, $pusatId) {
+                $q->where('level_id', \App\Models\Level::where('name', 'Manager')->firstOrFail()->id)
+                ->where(function ($subq) use ($user, $pusatId) {
+                    $subq->where('subsidiary_id', $user->profile->subsidiary_id)
+                        ->orWhere('subsidiary_id', $pusatId);
+                });
             });
         }
         
-        $visitRequests = $query->paginate(10);
-        return view('visit_requests.index', compact('visitRequests'));
+        $visitRequests = $query->paginate(15);
+
+        // Sekarang, kita kirimkan data ke komponen Livewire
+         return view('visit_requests.approval', compact('visitRequests'));
     }
-    
+
+        public function monitor()
+    {
+        // Cek otorisasi khusus untuk HRD jika perlu
+        if (auth()->user()->profile->department?->name !== 'HRD') {
+            abort(403);
+        }
+        // Halaman ini hanya akan memanggil komponen Livewire
+        return view('visit_requests.monitor');
+    }
+        
 
     public function hrdApproval()
     {
@@ -76,7 +83,7 @@ class VisitRequestController extends Controller
 
         $visitRequests = $query->paginate(10);
         // Kita gunakan view yang sama dengan index, karena isinya tabel juga
-        return view('visit_requests.index', compact('visitRequests'));
+        return view('visit_requests.approval', compact('visitRequests'));
 
     }
   
@@ -117,7 +124,7 @@ class VisitRequestController extends Controller
         Gate::authorize('approve', $visitRequest);
         $approvedStatus = Status::where('name', 'Approved')->firstOrFail();
         $visitRequest->update(['status_id' => $approvedStatus->id, 'approved_by' => Auth::id(), 'approved_at' => now(), 'rejection_reason' => null]);
-        return redirect()->route('requests.index')->with('success', 'Permintaan berhasil disetujui.');
+        return redirect()->route('requests.approval')->with('success', 'Permintaan berhasil disetujui.');
     }
 
     public function reject(Request $request, VisitRequest $visitRequest)
@@ -126,19 +133,36 @@ class VisitRequestController extends Controller
         $request->validate(['rejection_reason' => 'required|string|min:10']);
         $rejectedStatus = Status::where('name', 'Rejected')->firstOrFail();
         $visitRequest->update(['status_id' => $rejectedStatus->id, 'approved_by' => null, 'approved_at' => null, 'rejection_reason' => $request->rejection_reason]);
-        return redirect()->route('requests.index')->with('success', 'Permintaan telah ditolak.');
+        return redirect()->route('requests.approval')->with('success', 'Permintaan telah ditolak.');
     }
 
-    public function destroy(VisitRequest $visitRequest)
+
+    public function cancel(VisitRequest $visitRequest)
     {
+        // Pastikan hanya pemilik request yang bisa membatalkan
         if (auth()->id() !== $visitRequest->user_id) {
             abort(403);
         }
+        // Pastikan hanya request yang 'Pending' yang bisa dibatalkan
         if ($visitRequest->status->name !== 'Pending') {
-            return back()->with('error', 'Hanya permintaan yang pending yang bisa dibatalkan.');
+            return back()->with('error', 'Hanya permintaan yang sedang pending yang bisa dibatalkan.');
         }
 
-        $visitRequest->delete();
+        $cancelledStatus = Status::where('name', 'Cancelled')->firstOrFail();
+        $visitRequest->update(['status_id' => $cancelledStatus->id]);
+
         return redirect()->route('requests.my')->with('success', 'Permintaan berhasil dibatalkan.');
+    }
+
+    public function export(Request $request)
+    {
+        // Ambil semua filter dari URL
+        $filters = $request->all();
+
+        // Siapkan nama file
+        $fileName = 'visit_requests_' . date('Y-m-d') . '.xlsx';
+
+        // Panggil kelas Export dengan membawa filter dan unduh file
+        return Excel::download(new VisitRequestsExport($filters), $fileName);
     }
 }

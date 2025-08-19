@@ -12,63 +12,62 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-
                     {{-- 1. Link "Request Saya" (Untuk semua yang bisa request, KECUALI Deputi) --}}
                     @if(in_array(Auth::user()->profile?->role?->name, ['Staff', 'Approver', 'Resepsionis']) && Auth::user()->profile?->level?->name !== 'Deputi')
                         <x-nav-link :href="route('requests.my')" :active="request()->routeIs('requests.my') || request()->routeIs('requests.create')">
-                            Request Saya
+                            {{ __('Request Saya') }}
                         </x-nav-link>
                     @endif
 
                     {{-- 2. Link "Approval" (HANYA untuk Approver) --}}
                     @if(Auth::user()->profile?->role?->name === 'Approver')
-                        {{-- Link khusus untuk Manajer HRD --}}
                         @if(Auth::user()->profile?->department?->name === 'HRD')
                             <x-nav-link :href="route('requests.hrd_approval')" :active="request()->routeIs('requests.hrd_approval')">
-                                Approval HRD
+                                {{ __('Approval HRD') }}
                             </x-nav-link>
                         @else
-                            {{-- Link untuk Approver biasa --}}
-                            <x-nav-link :href="route('requests.index')" :active="request()->routeIs('requests.index') && !request()->routeIs('requests.hrd_approval')">
-                                Approval
+                            <x-nav-link :href="route('requests.approval')" :active="request()->routeIs('requests.approval')">
+                                {{ __('Approval') }}
                             </x-nav-link>
                         @endif
                     @endif
                     
                     {{-- 3. Link "Pantau Semua" (HANYA untuk departemen HRD) --}}
                     @if(Auth::user()->profile?->department?->name === 'HRD')
-                        <x-nav-link :href="route('requests.index')" :active="request()->routeIs('requests.index')">
-                            Pantau Semua
+                        <x-nav-link :href="route('requests.monitor')" :active="request()->routeIs('requests.monitor')">
+                            {{ __('Pantau Semua') }}
                         </x-nav-link>
                     @endif
 
                     {{-- 4. Link "Manajemen Tamu" (HANYA untuk Resepsionis) --}}
                     @if(Auth::user()->profile?->role?->name === 'Resepsionis')
                         <x-nav-link :href="route('receptionist.scanner')" :active="request()->routeIs('receptionist.*')">
-                            Manajemen Tamu
+                            {{ __('Manajemen Tamu') }}
                         </x-nav-link>
                     @endif
                     
                     {{-- 5. Link "Admin Dashboard" (HANYA untuk Admin) --}}
                     @if(Auth::user()->profile?->role?->name === 'Admin')
                         <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">
-                            Admin Dashboard
+                            {{ __('Admin Dashboard') }}
                         </x-nav-link>
                     @endif
                 </div>
             </div>
 
-            <!-- Desktop Logout -->
-           <div class="hidden sm:flex sm:items-center sm:ms-6">
+            <!-- Desktop User Settings -->
+            <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <div class="me-3 text-right">
                     <div class="font-medium text-sm text-gray-800">{{ Auth::user()->name }}</div>
-                    <div class="text-xs text-gray-500">{{ Auth::user()->profile?->department?->name }} | {{ Auth::user()->profile?->level?->name }}</div>
+                    <div class="text-xs text-gray-500">
+                        {{ Auth::user()->profile?->department?->name }} | {{ Auth::user()->profile?->level?->name }}
+                    </div>
                 </div>
 
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                        Log Out
+                        {{ __('Log Out') }}
                     </button>
                 </form>
             </div>
@@ -97,71 +96,69 @@
     </div>
 
     <!-- Mobile Navigation Menu -->
-    <!-- Mobile Navigation Menu -->
-<div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
-    <div class="pt-2 pb-3 space-y-1">
-
-        {{-- 1. Link "Request Saya" (Untuk semua yang bisa request, KECUALI Deputi) --}}
-        @if(in_array(Auth::user()->profile?->role?->name, ['Staff', 'Approver', 'Resepsionis']) && Auth::user()->profile?->level?->name !== 'Deputi')
-            <x-responsive-nav-link :href="route('requests.my')" :active="request()->routeIs('requests.my') || request()->routeIs('requests.create')">
-                Request Saya
-            </x-responsive-nav-link>
-        @endif
-
-        {{-- 2. Link "Approval" (HANYA untuk Approver) --}}
-        @if(Auth::user()->profile?->role?->name === 'Approver')
-            @if(Auth::user()->profile?->department?->name === 'HRD')
-                <x-responsive-nav-link :href="route('requests.hrd_approval')" :active="request()->routeIs('requests.hrd_approval')">
-                    Approval HRD
-                </x-responsive-nav-link>
-            @else
-                <x-responsive-nav-link :href="route('requests.index')" :active="request()->routeIs('requests.index') && !request()->routeIs('requests.hrd_approval')">
-                    Approval
+    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
+        <div class="pt-2 pb-3 space-y-1">
+            {{-- 1. Link "Request Saya" --}}
+            @if(in_array(Auth::user()->profile?->role?->name, ['Staff', 'Approver', 'Resepsionis']) && Auth::user()->profile?->level?->name !== 'Deputi')
+                <x-responsive-nav-link :href="route('requests.my')" :active="request()->routeIs('requests.my') || request()->routeIs('requests.create')">
+                    {{ __('Request Saya') }}
                 </x-responsive-nav-link>
             @endif
-        @endif
 
-        {{-- 3. Link "Pantau Semua" (HANYA untuk departemen HRD) --}}
-        @if(Auth::user()->profile?->department?->name === 'HRD')
-            <x-responsive-nav-link :href="route('requests.index')" :active="request()->routeIs('requests.index')">
-                Pantau Semua
-            </x-responsive-nav-link>
-        @endif
-
-        {{-- 4. Link "Manajemen Tamu" (HANYA untuk Resepsionis) --}}
-        @if(Auth::user()->profile?->role?->name === 'Resepsionis')
-            <x-responsive-nav-link :href="route('receptionist.scanner')" :active="request()->routeIs('receptionist.*')">
-                Manajemen Tamu
-            </x-responsive-nav-link>
-        @endif
-
-        {{-- 5. Link "Admin Dashboard" (HANYA untuk Admin) --}}
-        @if(Auth::user()->profile?->role?->name === 'Admin')
-            <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">
-                Admin Dashboard
-            </x-responsive-nav-link>
-        @endif
-    </div>
-
-    <!-- Mobile User Settings -->
-    <div class="pt-4 pb-1 border-t border-gray-200">
-        <div class="px-4">
-            <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-            <div class="text-xs text-gray-500">{{ Auth::user()->profile?->department?->name }} | {{ Auth::user()->profile?->level?->name }}</div>
-        </div>
-
-        <div class="mt-3 space-y-1">
-            <!-- Mobile Logout -->
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <x-responsive-nav-link :href="route('logout')"
-                        onclick="event.preventDefault();
-                                this.closest('form').submit();">
-                    {{ __('Log Out') }}
+            {{-- 2. Link "Approval" --}}
+            @if(Auth::user()->profile?->role?->name === 'Approver')
+                @if(Auth::user()->profile?->department?->name === 'HRD')
+                    <x-responsive-nav-link :href="route('requests.hrd_approval')" :active="request()->routeIs('requests.hrd_approval')">
+                        {{ __('Approval HRD') }}
+                    </x-responsive-nav-link>
+                @else
+                    <x-responsive-nav-link :href="route('requests.approval')" :active="request()->routeIs('requests.approval')">
+                        {{ __('Approval') }}
+                    </x-responsive-nav-link>
+                @endif
+            @endif
+            
+            {{-- 3. Link "Pantau Semua" --}}
+            @if(Auth::user()->profile?->department?->name === 'HRD')
+                <x-responsive-nav-link :href="route('requests.monitor')" :active="request()->routeIs('requests.monitor')">
+                    {{ __('Pantau Semua') }}
                 </x-responsive-nav-link>
-            </form>
+            @endif
+
+            {{-- 4. Link "Manajemen Tamu" --}}
+            @if(Auth::user()->profile?->role?->name === 'Resepsionis')
+                <x-responsive-nav-link :href="route('receptionist.scanner')" :active="request()->routeIs('receptionist.*')">
+                    {{ __('Manajemen Tamu') }}
+                </x-responsive-nav-link>
+            @endif
+            
+            {{-- 5. Link "Admin Dashboard" --}}
+            @if(Auth::user()->profile?->role?->name === 'Admin')
+                <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">
+                    {{ __('Admin Dashboard') }}
+                </x-responsive-nav-link>
+            @endif
+        </div>
+
+        <!-- Mobile User Settings -->
+        <div class="pt-4 pb-1 border-t border-gray-200">
+            <div class="px-4">
+                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
+                <div class="text-xs text-gray-500">
+                    {{ Auth::user()->profile?->department?->name }} | {{ Auth::user()->profile?->level?->name }}
+                </div>
+            </div>
+
+            <div class="mt-3 space-y-1">
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <x-responsive-nav-link :href="route('logout')"
+                            onclick="event.preventDefault();
+                                    this.closest('form').submit();">
+                        {{ __('Log Out') }}
+                    </x-responsive-nav-link>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 </nav>
-

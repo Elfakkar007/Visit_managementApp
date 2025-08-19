@@ -1,16 +1,5 @@
 <x-app-layout>
-    <x-slot name="header">
-        {{-- Judul Halaman Dinamis di Navigasi Atas --}}
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            @if(request()->routeIs('requests.hrd_approval'))
-                {{ __('Approval Khusus HRD') }}
-            @elseif(Auth::user()->profile?->department?->name === 'HRD')
-                {{ __('Pantau Semua Request') }}
-            @else
-                {{ __('Dashboard Approval') }}
-            @endif
-        </h2>
-    </x-slot>
+  
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -33,13 +22,14 @@
                             <p class="text-gray-600">Berikut adalah daftar permintaan yang membutuhkan tindakan Anda.</p>
                         @endif
                     </div>
-
-
-                    @include('visit_requests._table', ['requests' => $visitRequests])
-
-                    <div class="mt-4">
-                        {{ $visitRequests->links() }}
+                
+                    <div class="py-12">
+                        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                            {{-- Panggil komponen Livewire di sini --}}
+                            @livewire('request-history')
+                        </div>
                     </div>
+              
                 </div>
             </div>
         </div>
