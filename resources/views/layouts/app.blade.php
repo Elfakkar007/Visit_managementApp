@@ -32,7 +32,29 @@
             <main>
                 {{ $slot }}
             </main>
-            @livewireScripts
+          
         </div>
+         <script>
+            // FUNGSI BARU YANG REUSABLE
+            function confirmAction(formId, title, text) {
+                Swal.fire({
+                    title: title, // Menggunakan judul dari parameter
+                    text: text,   // Menggunakan teks dari parameter
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Ya, Lanjutkan!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Jika user menekan "Ya", kirim form-nya
+                        document.getElementById(formId).submit();
+                    }
+                })
+            }
+        </script>
+          @stack('scripts')
+            @livewireScripts
     </body>
 </html>

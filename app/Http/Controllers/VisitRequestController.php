@@ -127,14 +127,27 @@ class VisitRequestController extends Controller
         return redirect()->route('requests.approval')->with('success', 'Permintaan berhasil disetujui.');
     }
 
-    public function reject(Request $request, VisitRequest $visitRequest)
-    {
-        Gate::authorize('approve', $visitRequest);
-        $request->validate(['rejection_reason' => 'required|string|min:10']);
-        $rejectedStatus = Status::where('name', 'Rejected')->firstOrFail();
-        $visitRequest->update(['status_id' => $rejectedStatus->id, 'approved_by' => null, 'approved_at' => null, 'rejection_reason' => $request->rejection_reason]);
-        return redirect()->route('requests.approval')->with('success', 'Permintaan telah ditolak.');
-    }
+
+
+        public function reject(Request $request, VisitRequest $visitRequest)
+        {
+            Gate::authorize('approve', $visitRequest);
+
+            $request->validate([
+                'rejection_reason' => 'nullable|string|max:500'
+            ]);
+
+            $rejectedStatus = Status::where('name', 'Rejected')->firstOrFail();
+
+            $visitRequest->update([
+                'status_id' => $rejectedStatus->id, 
+                'approved_by' => null, 
+                'approved_at' => null, 
+                'rejection_reason' => $request->rejection_reason 
+            ]);
+
+            return redirect()->route('requests.approval')->with('success', 'Permintaan telah ditolak.');
+        }
 
 
     public function cancel(VisitRequest $visitRequest)

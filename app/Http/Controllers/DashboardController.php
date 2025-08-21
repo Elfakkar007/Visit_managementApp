@@ -34,9 +34,14 @@ class DashboardController extends Controller
         }
 
         if ($roleName === 'Approver') {
-            return Redirect::route('requests.approval'); // Arahkan ke rute approval        
-        }   
-
+            // Cek dulu apakah approver ini dari departemen HRD
+            if ($user->profile->department?->name === 'HRD') {
+                return Redirect::route('requests.hrd_approval');
+            }
+            
+            // Jika bukan, baru arahkan ke approval umum
+            return Redirect::route('requests.approval');
+        }
         // Default untuk peran 'Staff'
         return Redirect::route('requests.my');
     }

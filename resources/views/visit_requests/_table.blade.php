@@ -37,32 +37,52 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button 
-                            type="button" 
-                            class="text-indigo-600 hover:text-indigo-900"
-                            x-on:click="
-                                selectedRequest = @json($request->load(['user.profile.department']));
-                                $dispatch('open-modal', { name: 'request-detail-modal' });
-                            "
-                        >
-                            Lihat Detail
+                        type="button" 
+                        class="text-indigo-600 hover:text-indigo-900"
+                        x-on:click="openDetailModal(JSON.parse(atob('{{ base64_encode(json_encode($request->load(['user.profile.department', 'status']))) }}')))"
+                    >
+                        Lihat Detail
                     </button>
-                        @can('approve', $request)
-                                <form action="{{ route('requests.approve', $request) }}" method="POST" class="inline-block ml-4">
-                                    @csrf @method('PATCH')
-                                    <button type="submit" class="text-green-600 hover:text-green-900">Setujui</button>
-                                </form>
-                                <form action="{{ route('requests.reject', $request) }}" method="POST" class="inline-block ml-4" onsubmit="return confirm('Yakin ingin menolak request ini?');">
-                                    @csrf @method('PATCH')
-                                    <input type="hidden" name="rejection_reason" value="Ditolak via dashboard">
-                                    <button type="submit" class="text-red-600 hover:text-red-900">Tolak</button>
-                                </form>
-                            @endcan
+                         @if ($request->status->name === 'Pending')
+                                @can('approve', $request)
+                                    
+                                    <form action="{{ route('requests.approve', $request) }}" method="POST" class="inline-block ml-4">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="text-green-600 hover:text-green-900">Setujui</button>
+                                    </form>
+
+                                    <form id="reject-form-{{ $request->id }}" action="{{ route('requests.reject', $request) }}" method="POST" class="inline-block ml-4">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="button" 
+                                        onclick="confirmAction(
+                                            'reject-form-{{ $request->id }}', 
+                                            'Anda Yakin?', 
+                                            'Anda akan menolak permintaan ini. Aksi ini tidak bisa diurungkan.'
+                                        )" 
+                                        class="text-red-600 hover:text-red-900">
+                                            Tolak
+                                        </button>
+                                    </form>
+                                    
+                                @endcan
+                            @endif
 
                          @if(Auth::id() === $request->user_id && $request->status->name === 'Pending')
-                            <form action="{{ route('requests.cancel', $request) }}" method="POST" class="inline-block ml-4" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan request ini?');">
+
+                            <form id="cancel-form-{{ $request->id }}" action="{{ route('requests.cancel', $request) }}" method="POST" class="inline-block">
                                 @csrf
                                 @method('PATCH')
-                                <button type="submit" class="text-red-600 hover:text-red-900">Batalkan</button>
+                                <button type="button" 
+                                        onclick="confirmAction(
+                                            'cancel-form-{{ $request->id }}', 
+                                            'Batalkan Permintaan?', 
+                                            'Permintaan yang sudah dibatalkan tidak bisa dikembalikan.'
+                                        )" 
+                                        class="ml-4 text-red-600 hover:text-red-900">
+                                    Batalkan
+                                </button>
                             </form>
                         @endif
                     </td>
