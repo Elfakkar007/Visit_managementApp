@@ -39,8 +39,8 @@ class GuestVisit extends Model
         return $this->belongsTo(User::class, 'checked_out_by');
     }
 
-    public function getRouteKeyName()
-    {
-        return 'uuid';
-    }
+    // public function getRouteKeyName()
+    // {
+    //     return 'uuid';
+    // }
 }

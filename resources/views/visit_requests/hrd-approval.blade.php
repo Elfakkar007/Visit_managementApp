@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Pantau Semua Request') }}
+            {{ __('Dashboard Approval HRD') }}
         </h2>
     </x-slot>
 
@@ -9,7 +9,11 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                   @livewire('request-history', ['mode' => 'monitor'])
+                    <p class="mb-4">Berikut adalah daftar permintaan yang membutuhkan tindakan Anda sebagai atasan di departemen HRD.</p>
+                    
+                    {{-- Panggil komponen Livewire dengan mode baru yang spesifik --}}
+                    @livewire('request-history', ['mode' => 'hrd_approval'])
+
                 </div>
             </div>
         </div>

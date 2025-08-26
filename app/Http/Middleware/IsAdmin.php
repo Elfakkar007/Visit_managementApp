@@ -11,11 +11,13 @@ class IsAdmin
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::check() && Auth::user()->profile->role->name === 'Admin') {
+        // Cek apakah pengguna sudah login DAN memiliki peran 'Admin'
+        if (auth()->check() && auth()->user()->profile?->role?->name === 'Admin') {
+            // Jika ya, izinkan akses
             return $next($request);
         }
 
-        // Jika bukan admin, kembalikan ke halaman dashboard atau 403 Forbidden
-        return redirect('/dashboard')->with('error', 'Anda tidak memiliki akses ke halaman ini.');
+        // Jika tidak, tendang ke halaman dashboard biasa
+        abort(403, 'Unauthorized Access'); 
     }
 }

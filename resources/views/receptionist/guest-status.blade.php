@@ -1,10 +1,10 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Riwayat Kunjungan Tamu</h2>
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Status Tamu Aktif</h2>
     </x-slot>
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <livewire:receptionist.guest-history-table />
+            <livewire:receptionist.guest-status-table />
         </div>
     </div>
 </x-app-layout>

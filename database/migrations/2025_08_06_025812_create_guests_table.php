@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('guests', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('phone')->unique(); // Nomor telepon harus unik untuk setiap tamu
+            $table->string('phone')->unique(); 
             $table->string('company');
             $table->timestamps();
         });

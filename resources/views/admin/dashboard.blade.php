@@ -1,52 +1,88 @@
-<x-app-layout>
+<x-admin-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Admin Dashboard') }}
+            {{ __('Dashboard') }}
         </h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    <h3 class="text-lg font-medium">Selamat Datang, {{ Auth::user()->name }}!</h3>
-                    <p class="text-gray-600 mt-1">Pilih salah satu menu di bawah untuk mengelola data aplikasi.</p>
-                </div>
+    <div>
+        <!-- Kartu Statistik -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="p-6 bg-white border border-gray-200 rounded-lg shadow">
+                <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900">{{ $totalUsers }}</h5>
+                <p class="font-normal text-gray-700">Total Pengguna</p>
             </div>
+            <div class="p-6 bg-white border border-gray-200 rounded-lg shadow">
+                <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900">{{ $pendingRequests }}</h5>
+                <p class="font-normal text-gray-700">Request Pending</p>
+            </div>
+            <div class="p-6 bg-white border border-gray-200 rounded-lg shadow">
+                <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900">{{ $guestsCheckedIn }}</h5>
+                <p class="font-normal text-gray-700">Tamu Sedang Check-in</p>
+            </div>
+            <div class="p-6 bg-white border border-gray-200 rounded-lg shadow">
+                <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900">{{ $guestsToday }}</h5>
+                <p class="font-normal text-gray-700">Total Tamu Hari Ini</p>
+            </div>
+        </div>
 
-            {{-- Grid Menu Navigasi --}}
-            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <a href="{{ route('admin.users.index') }}" class="bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-xl transition-shadow duration-300">
-                    <div class="p-6">
-                        <h4 class="font-semibold text-lg text-gray-800">Manajemen Pengguna</h4>
-                        <p class="text-gray-500 mt-2">Tambah, edit, atau hapus data pengguna.</p>
-                    </div>
-                </a>
-                <a href="{{ route('admin.departments.index') }}" class="bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-xl transition-shadow duration-300">
-                    <div class="p-6">
-                        <h4 class="font-semibold text-lg text-gray-800">Manajemen Departemen</h4>
-                        <p class="text-gray-500 mt-2">Kelola daftar departemen perusahaan.</p>
-                    </div>
-                </a>
-                <a href="{{ route('admin.levels.index') }}" class="bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-xl transition-shadow duration-300">
-                    <div class="p-6">
-                        <h4 class="font-semibold text-lg text-gray-800">Manajemen Level</h4>
-                        <p class="text-gray-500 mt-2">Kelola daftar level jabatan.</p>
-                    </div>
-                </a>
-                <a href="{{ route('admin.roles.index') }}" class="bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-xl transition-shadow duration-300">
-                    <div class="p-6">
-                        <h4 class="font-semibold text-lg text-gray-800">Manajemen Role</h4>
-                        <p class="text-gray-500 mt-2">Kelola peran pengguna dalam sistem.</p>
-                    </div>
-                </a>
-                 <a href="{{ route('admin.subsidiaries.index') }}" class="bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-xl transition-shadow duration-300">
-                    <div class="p-6">
-                        <h4 class="font-semibold text-lg text-gray-800">Manajemen Subsidiary</h4>
-                        <p class="text-gray-500 mt-2">Kelola daftar subsidiary perusahaan.</p>
-                    </div>
-                </a>
+        <!-- Grafik -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="p-6 bg-white border border-gray-200 rounded-lg shadow">
+                <h5 class="text-lg font-semibold text-gray-900 mb-4">Request Perjalanan Dinas ({{ date('Y') }})</h5>
+                <canvas id="requestsChart"></canvas>
+            </div>
+            <div class="p-6 bg-white border border-gray-200 rounded-lg shadow">
+                <h5 class="text-lg font-semibold text-gray-900 mb-4">Kunjungan Tamu (7 Hari Terakhir)</h5>
+                <canvas id="guestsChart"></canvas>
             </div>
         </div>
     </div>
-</x-app-layout>
+
+    @push('scripts')
+    {{-- Pastikan Chart.js di-load. Jika sudah ada di layout utama, baris ini bisa dihapus. --}}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Grafik Request Bulanan
+            const requestsCtx = document.getElementById('requestsChart').getContext('2d');
+            new Chart(requestsCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
+                    datasets: [{
+                        label: 'Jumlah Request',
+                        data: @json($requestsChartData),
+                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
+
+            // Grafik Kunjungan Tamu Mingguan
+            const guestsCtx = document.getElementById('guestsChart').getContext('2d');
+            new Chart(guestsCtx, {
+                type: 'line',
+                data: {
+                    labels: @json($guestChartLabels),
+                    datasets: [{
+                        label: 'Jumlah Tamu',
+                        data: @json($guestChartData),
+                        fill: true,
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
+        });
+    </script>
+    @endpush
+</x-admin-layout>

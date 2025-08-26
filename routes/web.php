@@ -6,13 +6,14 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\VisitRequestController;
 use App\Http\Controllers\GuestVisitController;
 use App\Http\Controllers\ReceptionistController;
-use App\Http\Controllers\DashboardController; // Controller untuk "Pengatur Lalu Lintas"
-use App\Http\Controllers\Admin\DepartmentController;
-use App\Http\Controllers\Admin\LevelController;
-use App\Http\Controllers\Admin\RoleController;
-use App\Http\Controllers\Admin\SubsidiaryController;
+use App\Http\Controllers\DashboardController; // Controller "Pengatur Lalu Lintas"
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController; // Controller khusus dasbor admin
+use App\Http\Controllers\Admin\MasterDataController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController; // Controller untuk dasbor admin
+use App\Http\Controllers\Admin\ActivityLogController;
+// Tambahkan controller lain untuk admin di sini nanti
+// use App\Http\Controllers\Admin\UserController;
+// ...
 
 /*
 |--------------------------------------------------------------------------
@@ -35,7 +36,7 @@ Route::middleware('auth')->group(function () {
     // Rute ini memanggil "Pengatur Lalu Lintas" setelah login
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Halaman Profil Pengguna
+    // Halaman Profil Pengguna 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -54,29 +55,32 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{visitRequest}/reject', [VisitRequestController::class, 'reject'])->name('reject');
         Route::patch('/{visitRequest}/cancel', [VisitRequestController::class, 'cancel'])->name('cancel');
     });
+
+    // Modul Resepsionis
+    Route::prefix('receptionist')->name('receptionist.')->group(function() {
+        Route::get('/scanner', [ReceptionistController::class, 'scanner'])->name('scanner');
+        Route::get('/history', [ReceptionistController::class, 'history'])->name('history');
+        Route::get('/guest-status', [ReceptionistController::class, 'guestStatus'])->name('guestStatus');
+        Route::get('/get-visit-status/{uuid}', [ReceptionistController::class, 'getVisitStatus'])->name('getVisitStatus');
+        Route::post('/perform-check-in', [ReceptionistController::class, 'performCheckIn'])->name('performCheckIn');
+        Route::get('/visits/{visit}/ktp', [ReceptionistController::class, 'showKtpImage'])->name('showKtpImage');
+    });
 });
 
 
-// == RUTE UNTUK RESEPSIONIS ==
-Route::middleware(['auth', 'check.receptionist'])
-    ->prefix('receptionist')->name('receptionist.')->group(function () {
-        Route::get('/scanner', [ReceptionistController::class, 'scanner'])->name('scanner');
-        Route::post('/process-scan', [ReceptionistController::class, 'processScan'])->name('processScan');
-        Route::get('/history', [ReceptionistController::class, 'history'])->name('history');
-    });
-
-
 // == RUTE UNTUK PANEL ADMIN ==
-Route::middleware(['auth', 'admin'])
+Route::middleware(['auth', 'is_admin'])
     ->prefix('admin')->name('admin.')->group(function () {
-        // PERBAIKAN DI SINI: Gunakan AdminDashboardController
+        
+        // Ini adalah satu-satunya rute yang benar untuk dashboard admin
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-        Route::resource('departments', DepartmentController::class);
-        Route::resource('levels', LevelController::class);
-        Route::resource('roles', RoleController::class);
-        Route::resource('subsidiaries', SubsidiaryController::class);
-        Route::resource('users', UserController::class);
-    });
+        Route::get('/master-data', [MasterDataController::class, 'index'])->name('master-data');
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::get('/activities', function () {return view('admin.activities.index');})->name('activities.index');
+});
+        
+
+    
 
 // Memuat rute autentikasi dari Breeze
 require __DIR__.'/auth.php';

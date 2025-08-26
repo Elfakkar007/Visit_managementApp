@@ -41,8 +41,14 @@
 
                     {{-- 4. Link "Manajemen Tamu" (HANYA untuk Resepsionis) --}}
                     @if(Auth::user()->profile?->role?->name === 'Resepsionis')
-                        <x-nav-link :href="route('receptionist.scanner')" :active="request()->routeIs('receptionist.*')">
-                            {{ __('Manajemen Tamu') }}
+                        <x-nav-link :href="route('receptionist.scanner')" :active="request()->routeIs('receptionist.scanner')">
+                            {{ __('Scanner Tamu') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('receptionist.guestStatus')" :active="request()->routeIs('receptionist.guestStatus')">
+                            {{ __('Status Tamu') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('receptionist.history')" :active="request()->routeIs('receptionist.history')">
+                            {{ __('Riwayat Kunjungan') }}
                         </x-nav-link>
                     @endif
                     
@@ -127,8 +133,14 @@
 
             {{-- 4. Link "Manajemen Tamu" --}}
             @if(Auth::user()->profile?->role?->name === 'Resepsionis')
-                <x-responsive-nav-link :href="route('receptionist.scanner')" :active="request()->routeIs('receptionist.*')">
-                    {{ __('Manajemen Tamu') }}
+                <x-responsive-nav-link :href="route('receptionist.scanner')" :active="request()->routeIs('receptionist.scanner')">
+                    {{ __('Scanner Tamu') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('receptionist.guestStatus')" :active="request()->routeIs('receptionist.guestStatus')">
+                    {{ __('Status Tamu') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('receptionist.history')" :active="request()->routeIs('receptionist.history')">
+                    {{ __('Riwayat Kunjungan') }}
                 </x-responsive-nav-link>
             @endif
             
@@ -153,8 +165,8 @@
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault();
-                                    this.closest('form').submit();">
+                                onclick="event.preventDefault();
+                                            this.closest('form').submit();">
                         {{ __('Log Out') }}
                     </x-responsive-nav-link>
                 </form>

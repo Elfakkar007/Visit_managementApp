@@ -10,19 +10,22 @@ return new class extends Migration
     {
         Schema::create('guest_visits', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('guest_id')->constrained()->onDelete('cascade');
+            $table->foreignId('guest_id')->constrained('guests')->onDelete('cascade');
             $table->uuid('uuid')->unique();
             
-            // --- PERUBAHAN DI SINI ---
-            // 1. Kolom 'purpose' dihapus.
-            // 2. 'destination_person' diubah menjadi lebih umum.
-            $table->string('visit_destination'); // Bisa diisi nama orang atau nama departemen
+            // Kolom yang diisi oleh tamu
+            $table->string('ktp_photo_path');
+
+            // Kolom yang diisi resepsionis (INI KUNCINYA)
+            $table->string('visit_destination')->nullable(); // Dibuat nullable dari awal
             
+            // Kolom status dan waktu
+            $table->enum('status', ['waiting_check_in', 'checked_in', 'checked_out']);
             $table->timestamp('time_in')->nullable();
-            $table->timestamp('time_out')->nullable();
-            $table->enum('status', ['waiting_check_in', 'checked_in', 'checked_out'])->default('waiting_check_in');
             $table->foreignId('checked_in_by')->nullable()->constrained('users');
+            $table->timestamp('time_out')->nullable();
             $table->foreignId('checked_out_by')->nullable()->constrained('users');
+
             $table->timestamps();
         });
     }

@@ -14,85 +14,100 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class VisitRequestController extends Controller
 {
-      public function approval()
-    {
-        $user = auth()->user();
-        $query = VisitRequest::with('user.profile.level', 'user.profile.department', 'status')
-        ->whereHas('status', function ($q) { $q->where('name', 'Pending'); })
-        ->latest();
-
-        
-
-        $userLevel = $user->profile->level->name;
-
-        // --- LOGIKA FILTER DENGAN URUTAN YANG BENAR ---
-
-        // Terapkan filter berdasarkan level
-        if ($userLevel === 'Manager' && $user->profile->department->name !== 'HRD') {
-            $query->whereHas('user.profile', function ($q) use ($user) {
-                $q->where('department_id', $user->profile->department_id)
-                ->where('subsidiary_id', $user->profile->subsidiary_id)
-                ->whereIn('level_id', \App\Models\Level::whereIn('name', ['Staff', 'SPV'])->pluck('id'));
-            });
-        } 
-        elseif ($userLevel === 'Deputi') {
-            $pusatId = \App\Models\Subsidiary::where('name', 'Pusat')->firstOrFail()->id;
-            
-            $query->whereHas('user.profile', function ($q) use ($user, $pusatId) {
-                $q->where('level_id', \App\Models\Level::where('name', 'Manager')->firstOrFail()->id)
-                ->where(function ($subq) use ($user, $pusatId) {
-                    $subq->where('subsidiary_id', $user->profile->subsidiary_id)
-                        ->orWhere('subsidiary_id', $pusatId);
-                });
-            });
+       public function approval()
+        {
+            return view('visit_requests.approval');
         }
+    // {
+    //     $user = auth()->user();
+    //     $query = VisitRequest::with('user.profile.level', 'user.profile.department', 'status')
+    //     ->whereHas('status', function ($q) { $q->where('name', 'Pending'); })
+    //     ->latest();
+
         
-        $visitRequests = $query->paginate(15);
 
-        // Sekarang, kita kirimkan data ke komponen Livewire
-         return view('visit_requests.approval', compact('visitRequests'));
-    }
+    //     $userLevel = $user->profile->level->name;
 
-        public function monitor()
+    //     // --- LOGIKA FILTER DENGAN URUTAN YANG BENAR ---
+
+    //     // Terapkan filter berdasarkan level
+    //     if ($userLevel === 'Manager' && $user->profile->department->name !== 'HRD') {
+    //         $query->whereHas('user.profile', function ($q) use ($user) {
+    //             $q->where('department_id', $user->profile->department_id)
+    //             ->where('subsidiary_id', $user->profile->subsidiary_id)
+    //             ->whereIn('level_id', \App\Models\Level::whereIn('name', ['Staff', 'SPV'])->pluck('id'));
+    //         });
+    //     } 
+    //     elseif ($userLevel === 'Deputi') {
+    //         $pusatId = \App\Models\Subsidiary::where('name', 'Pusat')->firstOrFail()->id;
+            
+    //         $query->whereHas('user.profile', function ($q) use ($user, $pusatId) {
+    //             $q->where('level_id', \App\Models\Level::where('name', 'Manager')->firstOrFail()->id)
+    //             ->where(function ($subq) use ($user, $pusatId) {
+    //                 $subq->where('subsidiary_id', $user->profile->subsidiary_id)
+    //                     ->orWhere('subsidiary_id', $pusatId);
+    //             });
+    //         });
+    //     }
+        
+    //     $visitRequests = $query->paginate(15);
+
+    //     // Sekarang, kita kirimkan data ke komponen Livewire
+    //      return view('visit_requests.approval', compact('visitRequests'));
+    // }
+
+    //     public function monitor()
+    // {
+    //     // Cek otorisasi khusus untuk HRD jika perlu
+    //     if (auth()->user()->profile->department?->name !== 'HRD') {
+    //         abort(403);
+    //     }
+    //     // Halaman ini hanya akan memanggil komponen Livewire
+    //     return view('visit_requests.monitor');
+    // }
+     public function monitor()
     {
-        // Cek otorisasi khusus untuk HRD jika perlu
         if (auth()->user()->profile->department?->name !== 'HRD') {
             abort(403);
         }
-        // Halaman ini hanya akan memanggil komponen Livewire
         return view('visit_requests.monitor');
     }
         
 
+    // public function hrdApproval()
+    // {
+    //     Gate::authorize('viewAny', VisitRequest::class);
+    //     $user = auth()->user();
+
+    //     // Query ini HANYA mengambil request dari bawahan di departemen HRD
+    //     $query = VisitRequest::with('user.profile.level', 'user.profile.department', 'status')
+    //         ->where('status_id', \App\Models\Status::where('name', 'Pending')->firstOrFail()->id)
+    //         ->whereHas('user.profile', function ($q) use ($user) {
+    //             $q->where('department_id', $user->profile->department_id)
+    //               ->whereIn('level_id', [
+    //                   \App\Models\Level::where('name', 'Staff')->firstOrFail()->id,
+    //                   \App\Models\Level::where('name', 'SPV')->firstOrFail()->id,
+    //               ]);
+    //         })
+    //         ->latest();
+
+    //     $visitRequests = $query->paginate(10);
+    //     // Kita gunakan view yang sama dengan index, karena isinya tabel juga
+    //     return view('visit_requests.approval', compact('visitRequests'));
+
+    // }
     public function hrdApproval()
     {
         Gate::authorize('viewAny', VisitRequest::class);
-        $user = auth()->user();
-
-        // Query ini HANYA mengambil request dari bawahan di departemen HRD
-        $query = VisitRequest::with('user.profile.level', 'user.profile.department', 'status')
-            ->where('status_id', \App\Models\Status::where('name', 'Pending')->firstOrFail()->id)
-            ->whereHas('user.profile', function ($q) use ($user) {
-                $q->where('department_id', $user->profile->department_id)
-                  ->whereIn('level_id', [
-                      \App\Models\Level::where('name', 'Staff')->firstOrFail()->id,
-                      \App\Models\Level::where('name', 'SPV')->firstOrFail()->id,
-                  ]);
-            })
-            ->latest();
-
-        $visitRequests = $query->paginate(10);
-        // Kita gunakan view yang sama dengan index, karena isinya tabel juga
-        return view('visit_requests.approval', compact('visitRequests'));
-
+        return view('visit_requests.hrd-approval');
     }
+ 
   
 
     
     public function myRequests()
     {
-        $visitRequests = VisitRequest::with('status', 'approver')->where('user_id', Auth::id())->latest()->paginate(10);
-        return view('visit_requests.my_requests', compact('visitRequests'));
+         return view('visit_requests.my_requests');
     }
 
     public function create()
