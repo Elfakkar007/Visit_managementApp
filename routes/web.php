@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController; 
 use App\Http\Controllers\Admin\MasterDataController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ActivityLogController;
+use App\Http\Controllers\Admin\GuestManagementController;
 // Tambahkan controller lain untuk admin di sini nanti
 // use App\Http\Controllers\Admin\UserController;
 // ...
@@ -77,6 +78,8 @@ Route::middleware(['auth', 'is_admin'])
         Route::get('/master-data', [MasterDataController::class, 'index'])->name('master-data');
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::get('/activities', function () {return view('admin.activities.index');})->name('activities.index');
+        Route::get('/guests/status', [GuestManagementController::class, 'status'])->name('guests.status');
+        Route::get('/guests/history', [GuestManagementController::class, 'history'])->name('guests.history');
 });
         
 

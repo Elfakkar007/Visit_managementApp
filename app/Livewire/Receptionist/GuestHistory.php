@@ -8,7 +8,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
 
-class GuestHistoryTable extends Component
+class GuestHistory extends Component
 {
     use WithPagination;
 
@@ -46,7 +46,7 @@ class GuestHistoryTable extends Component
 
     public function render()
     {
-        return view('livewire.receptionist.guest-history-table', [
+        return view('livewire.receptionist.guest-history', [
             'visits' => $this->buildQuery()->paginate(10)
         ]);
     }

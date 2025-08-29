@@ -21,14 +21,14 @@
                         {{-- Tujuan Kunjungan --}}
                         <div>
                             <label for="destination" class="block mb-2 text-sm font-medium text-gray-900">Tujuan Kunjungan</label>
-                            <input type="text" name="destination" id="destination" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Contoh: Kantor Pusat Jakarta" value="{{ old('destination') }}" required autofocus>
+                            <input type="text" name="destination" id="destination" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Tempat yang dituju" value="{{ old('destination') }}" required autofocus>
                             <x-input-error :messages="$errors->get('destination')" class="mt-2" />
                         </div>
 
                         {{-- Keperluan --}}
                         <div>
                             <label for="purpose" class="block mb-2 text-sm font-medium text-gray-900">Keperluan</label>
-                            <textarea id="purpose" name="purpose" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500" placeholder="Jelaskan keperluan kunjungan Anda secara detail..." required>{{ old('purpose') }}</textarea>
+                            <textarea id="purpose" name="purpose" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500" placeholder="Keperluan kunjungan" required>{{ old('purpose') }}</textarea>
                             <x-input-error :messages="$errors->get('purpose')" class="mt-2" />
                         </div>
 

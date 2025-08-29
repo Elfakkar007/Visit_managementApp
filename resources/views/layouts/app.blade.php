@@ -7,6 +7,7 @@
 
         {{-- Ganti baris ini --}}
         <title>Satoria VMS</title>
+        <link rel="icon" href="{{ asset('images/logo-satoria.png') }}" type="image/png">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

@@ -7,6 +7,7 @@
 
         {{-- Ganti judul default --}}
         <title>Satoria Visit Management</title>
+        <link rel="icon" href="{{ asset('images/logo-satoria.png') }}" type="image/png">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
