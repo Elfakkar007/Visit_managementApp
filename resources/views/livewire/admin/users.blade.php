@@ -6,34 +6,60 @@
     @endif
 
     {{-- MODAL UNTUK CREATE & EDIT --}}
-    @if($showModal)
-    <div class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex justify-center items-start pt-10">
-        <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl">
-            <h3 class="text-lg font-medium mb-4">{{ $editingId ? 'Edit' : 'Tambah' }} Pengguna</h3>
-            <form wire:submit.prevent="save">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {{-- Kolom Kiri --}}
-                    <div>
-                        <div class="mb-4">
-                            <label for="name" class="block mb-2 text-sm font-medium">Nama Lengkap</label>
-                            <input wire:model="name" type="text" id="name" class="form-input w-full" required>
-                            @error('name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+ 
+@if($showModal)
+<div class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex justify-center items-start pt-10">
+    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl">
+        <h3 class="text-lg font-medium mb-4">{{ $editingId ? 'Edit' : 'Tambah' }} Pengguna</h3>
+        <form wire:submit.prevent="save">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {{-- Kolom Kiri --}}
+                <div>
+                    <div class="mb-4">
+                        <label for="name" class="block mb-2 text-sm font-medium">Nama Lengkap</label>
+                        <input wire:model="name" type="text" id="name" class="form-input w-full" required>
+                        @error('name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="mb-4">
+                        <label for="email" class="block mb-2 text-sm font-medium">Email</label>
+                        <input wire:model="email" type="email" id="email" class="form-input w-full" required>
+                        @error('email') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+                    {{-- Tambahkan Alpine.js untuk show/hide password --}}
+                    <div class="mb-4" x-data="{ show: false }">
+                        <label for="password" class="block mb-2 text-sm font-medium">Password</label>
+                        <div class="relative">
+                            <input :type="show ? 'text' : 'password'" wire:model="password" id="password" class="form-input w-full pr-10" placeholder="{{ $editingId ? 'Kosongkan jika tidak diubah' : '' }}">
+                            <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 focus:outline-none" tabindex="-1">
+                                <svg x-show="!show" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                <svg x-show="show" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.956 9.956 0 012.293-3.95M6.873 6.872A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.965 9.965 0 01-4.293 5.95M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18" />
+                                </svg>
+                            </button>
                         </div>
-                        <div class="mb-4">
-                            <label for="email" class="block mb-2 text-sm font-medium">Email</label>
-                            <input wire:model="email" type="email" id="email" class="form-input w-full" required>
-                            @error('email') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                        </div>
-                        <div class="mb-4">
-                            <label for="password" class="block mb-2 text-sm font-medium">Password</label>
-                            <input wire:model="password" type="password" id="password" class="form-input w-full" placeholder="{{ $editingId ? 'Kosongkan jika tidak diubah' : '' }}">
-                            @error('password') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                        </div>
-                        <div class="mb-4">
-                            <label for="password_confirmation" class="block mb-2 text-sm font-medium">Konfirmasi Password</label>
-                            <input wire:model="password_confirmation" type="password" id="password_confirmation" class="form-input w-full">
+                        @error('password') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="mb-4" x-data="{ show: false }">
+                        <label for="password_confirmation" class="block mb-2 text-sm font-medium">Konfirmasi Password</label>
+                        <div class="relative">
+                            <input :type="show ? 'text' : 'password'" wire:model="password_confirmation" id="password_confirmation" class="form-input w-full pr-10">
+                            <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 focus:outline-none" tabindex="-1">
+                                <svg x-show="!show" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                <svg x-show="show" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.956 9.956 0 012.293-3.95M6.873 6.872A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.965 9.965 0 01-4.293 5.95M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18" />
+                                </svg>
+                            </button>
                         </div>
                     </div>
+                </div>
                     {{-- Kolom Kanan --}}
                     <div>
                         <div class="mb-4">
@@ -86,6 +112,7 @@
         </div>
     </div>
     @endif
+   
 
     {{-- MODAL UNTUK DETAIL & AKTIVITAS --}}
     @if($showDetailModal && $detailUser)
@@ -155,7 +182,8 @@
                     @endforeach
                 </select>
             </div>
-            <button wire:click="create" class="btn-primary w-full md:w-auto">
+            <button wire:click="create" class="inline-flex items-center justify-center w-full md:w-auto px-5 py-2.5 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 transition duration-150 ease-in-out">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                 Tambah Pengguna
             </button>
         </div>

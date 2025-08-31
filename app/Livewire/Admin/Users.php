@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Illuminate\Validation\Rule;
 
 class Users extends Component
 {
@@ -65,49 +66,56 @@ class Users extends Component
         $this->showModal = true;
     }
 
-    public function save()
-    {
-        $rules = [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . $this->editingId,
-            'subsidiary_id' => 'required|exists:subsidiaries,id',
-            'department_id' => 'required|exists:departments,id',
-            'role_id' => 'required|exists:roles,id',
-            'level_id' => 'required|exists:levels,id',
-        ];
+public function save()
+{
+    $rules = [
+        'name' => 'required|string|max:255',
+        'email' => [
+            'required',
+            'email',
+            'max:255',
+            Rule::unique('users', 'email')->ignore($this->editingId),
+        ],
+        'subsidiary_id' => 'required|exists:subsidiaries,id',
+        'department_id' => 'required|exists:departments,id',
+        'role_id' => 'required|exists:roles,id',
+        'level_id' => 'required|exists:levels,id',
+    ];
 
-        // Tambahkan validasi password hanya saat membuat user baru atau saat password diisi
-        if (!$this->editingId || !empty($this->password)) {
-            $rules['password'] = 'required|min:8|confirmed';
-        }
-
-        $this->validate($rules);
-
-        $userData = [
-            'name' => $this->name,
-            'email' => $this->email,
-        ];
-
-        if (!empty($this->password)) {
-            $userData['password'] = Hash::make($this->password);
-        }
-
-        $user = User::updateOrCreate(['id' => $this->editingId], $userData);
-
-        $user->profile()->updateOrCreate(
-            ['user_id' => $user->id],
-            [
-                'subsidiary_id' => $this->subsidiary_id,
-                'department_id' => $this->department_id,
-                'role_id' => $this->role_id,
-                'level_id' => $this->level_id,
-            ]
-        );
-
-        session()->flash('success', 'Data pengguna berhasil disimpan.');
-        $this->closeModal();
+    // Password hanya wajib saat create
+    if (!$this->editingId) {
+        $rules['password'] = 'required|string|min:6|confirmed';
+    } elseif ($this->password) {
+        $rules['password'] = 'nullable|string|min:6|confirmed';
     }
 
+    $validated = $this->validate($rules);
+
+    // Simpan user
+    $user = User::updateOrCreate(
+        ['id' => $this->editingId],
+        [
+            'name' => $this->name,
+            'email' => $this->email,
+            'password' => $this->password ? Hash::make($this->password) : User::find($this->editingId)?->password,
+        ]
+    );
+
+    // Selalu update/buat profile
+    $user->profile()->updateOrCreate(
+        ['user_id' => $user->id],
+        [
+            'subsidiary_id' => $this->subsidiary_id,
+            'department_id' => $this->department_id,
+            'role_id' => $this->role_id,
+            'level_id' => $this->level_id,
+        ]
+    );
+
+    $this->resetForm();
+    $this->showModal = false;
+    session()->flash('success', $this->editingId ? 'Pengguna berhasil diperbarui.' : 'Pengguna berhasil ditambahkan.');
+}
     public function viewDetails($id)
     {
         // Eager load relasi untuk efisiensi

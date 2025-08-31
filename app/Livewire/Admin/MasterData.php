@@ -77,7 +77,7 @@ class MasterData extends Component
     public function render()
     {
         $modelClass = $this->getModel();
-        $data = $modelClass::where('name', 'like', '%' . $this->search . '%')->paginate(10);
+        $data = $modelClass::where('name', 'ilike', '%' . $this->search . '%')->paginate(10);
         
         return view('livewire.admin.master-data', [
             'data' => $data,
