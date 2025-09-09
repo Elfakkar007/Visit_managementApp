@@ -12,6 +12,7 @@
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -19,44 +20,49 @@
     </head>
     <body class="font-sans antialiased">
         <div class="min-h-screen bg-gray-100">
-            @include('layouts.navigation')
+            <div class="flex">
+                @include('layouts.partials.app-sidebar')
 
-            <!-- Page Heading -->
-            @isset($header)
-                <header class="bg-white shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                        {{ $header }}
-                    </div>
-                </header>
-            @endisset
+                <div class="flex-1 sm:ml-64">
 
-            <!-- Page Content -->
-            <main>
-                {{ $slot }}
-            </main>
-          
+                    @include('layouts.navigation')
+
+                    <!-- Page Heading -->
+                    @if (isset($header))
+                        <header class="bg-white border-b border-gray-200">
+                            <div class="w-full mx-auto p-4 sm:p-6">
+                                {{ $header }}
+                            </div>
+                        </header>
+                    @endif
+
+                    <main>
+                        {{ $slot }}
+                    </main>
+                </div>
+            </div>
         </div>
-         <script>
-            // FUNGSI BARU YANG REUSABLE
-            function confirmAction(formId, title, text) {
-                Swal.fire({
-                    title: title, // Menggunakan judul dari parameter
-                    text: text,   // Menggunakan teks dari parameter
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Ya, Lanjutkan!',
-                    cancelButtonText: 'Batal'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Jika user menekan "Ya", kirim form-nya
-                        document.getElementById(formId).submit();
-                    }
-                })
-            }
-        </script>
-          @stack('scripts')
-            @livewireScripts
+        @livewireScripts
+         @stack('scripts')
+          <script>
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('show-toast', (event) => {
+                Toastify({
+                    text: event.message,
+                    duration: 3000,
+                    gravity: "top", 
+                    position: "right", 
+                    stopOnFocus: true,
+                    style: {
+                        background: event.type === 'success' ? '#10B981' : '#EF4444',
+                    },
+                }).showToast();
+            });
+        });
+    </script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+         
+            
     </body>
 </html>

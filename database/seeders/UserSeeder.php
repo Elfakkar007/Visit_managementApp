@@ -3,83 +3,113 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Subsidiary;
+use App\Models\Department;
+use App\Models\Level;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
     public function run(): void
     {
-        // === Ambil ID dari data master untuk relasi ===
-        $pusat = \App\Models\Subsidiary::where('name', 'Pusat')->firstOrFail();
-        // $agro = \App\Models\Subsidiary::where('name', 'Agro')->firstOrFail();
-        // $aneka = \App\Models\Subsidiary::where('name', 'Aneka')->firstOrFail();
-        
-        $adminRole = \App\Models\Role::where('name', 'Admin')->firstOrFail();
-        // $staffRole = \App\Models\Role::where('name', 'Staff')->firstOrFail();
-        // $approverRole = \App\Models\Role::where('name', 'Approver')->firstOrFail();
-        // $receptionistRole = \App\Models\Role::where('name', 'Resepsionis')->firstOrFail();
-        
-        $staffLevel = \App\Models\Level::where('name', 'Staff')->firstOrFail();
-        // $spvLevel = \App\Models\Level::where('name', 'SPV')->firstOrFail();
-        // $managerLevel = \App\Models\Level::where('name', 'Manager')->firstOrFail();
-        // $deputiLevel = \App\Models\Level::where('name', 'Deputi')->firstOrFail();
+        // ====================================================================================
+        // Penjelasan:
+        // 1. Kita tidak lagi menggunakan 'role_id' saat membuat profil.
+        // 2. Kita menggunakan method `$user->assignRole('Nama Role')` dari Spatie
+        //    untuk menugaskan peran ke setiap user SETELAH user tersebut dibuat.
+        //    Ini adalah cara baru yang dinamis.
+        // ====================================================================================
 
-        $itDept = \App\Models\Department::where('name', 'IT')->firstOrFail();
-        // $hrdDept = \App\Models\Department::where('name', 'HRD')->firstOrFail();
-        // $gaDept = \App\Models\Department::where('name', 'GA')->firstOrFail();
-        // $produksiDept = \App\Models\Department::where('name', 'Produksi')->firstOrFail();
-        
-        // --- DEPUTI (SUBSIDIARY AGRO & ANEKA) ---
-        // User::create(['name' => 'Deputi Agro', 'email' => 'deputi.agro@satoria.com', 'password' => Hash::make('password')])
-        //     ->profile()->create(['subsidiary_id' => $agro->id, 'department_id' => $gaDept->id, 'role_id' => $approverRole->id, 'level_id' => $deputiLevel->id]);
+        // Ambil semua data master untuk efisiensi
+        $subsidiaries = Subsidiary::pluck('id', 'name');
+        $departments = Department::pluck('id', 'name');
+        $levels = Level::pluck('id', 'name');
 
-        // User::create(['name' => 'Deputi Aneka', 'email' => 'deputi.aneka@satoria.com', 'password' => Hash::make('password')])
-        //     ->profile()->create(['subsidiary_id' => $aneka->id, 'department_id' => $gaDept->id, 'role_id' => $approverRole->id, 'level_id' => $deputiLevel->id]);
+        // --- USER SUPER ADMIN ---
+        $adminUser = User::updateOrCreate([
+            'name' => 'Admin IT',
+            'email' => 'admin.it@satoria.com',
+            'password' => Hash::make('password')
+        ]);
+        $adminUser->profile()->updateOrCreate([
+            'subsidiary_id' => $subsidiaries['Pusat'],
+            'department_id' => $departments['IT'],
+            'level_id' => $levels['Staff'],
+        ]);
+        $adminUser->assignRole('Admin'); // Menugaskan role 'Admin'
 
-        // --- DEPT IT (SUBSIDIARY PUSAT) ---
-        User::create(['name' => 'Admin IT', 'email' => 'admin.it@satoria.com', 'password' => Hash::make('password')])
-            ->profile()->create(['subsidiary_id' => $pusat->id, 'department_id' => $itDept->id, 'role_id' => $adminRole->id, 'level_id' => $staffLevel->id]);
-        // User::create(['name' => 'Staff IT', 'email' => 'staff.it@satoria.com', 'password' => Hash::make('password')])
-        //     ->profile()->create(['subsidiary_id' => $pusat->id, 'department_id' => $itDept->id, 'role_id' => $staffRole->id, 'level_id' => $staffLevel->id]);
-        // User::create(['name' => 'SPV IT', 'email' => 'spv.it@satoria.com', 'password' => Hash::make('password')])
-        //     ->profile()->create(['subsidiary_id' => $pusat->id, 'department_id' => $itDept->id, 'role_id' => $staffRole->id, 'level_id' => $spvLevel->id]);
-        // User::create(['name' => 'Manager IT', 'email' => 'manager.it@satoria.com', 'password' => Hash::make('password')])
-        //     ->profile()->create(['subsidiary_id' => $pusat->id, 'department_id' => $itDept->id, 'role_id' => $approverRole->id, 'level_id' => $managerLevel->id]);
-            
-        // // --- DEPT HRD (SUBSIDIARY PUSAT) ---
-        // User::create(['name' => 'Staff HRD', 'email' => 'staff.hrd@satoria.com', 'password' => Hash::make('password')])
-        //     ->profile()->create(['subsidiary_id' => $pusat->id, 'department_id' => $hrdDept->id, 'role_id' => $staffRole->id, 'level_id' => $staffLevel->id]);
-        // User::create(['name' => 'SPV HRD', 'email' => 'spv.hrd@satoria.com', 'password' => Hash::make('password')])
-        //     ->profile()->create(['subsidiary_id' => $pusat->id, 'department_id' => $hrdDept->id, 'role_id' => $staffRole->id, 'level_id' => $spvLevel->id]);
-        // User::create(['name' => 'Manager HRD', 'email' => 'manager.hrd@satoria.com', 'password' => Hash::make('password')])
-        //     ->profile()->create(['subsidiary_id' => $pusat->id, 'department_id' => $hrdDept->id, 'role_id' => $approverRole->id, 'level_id' => $managerLevel->id]);
-            
-        // // --- DEPT GA (SUBSIDIARY PUSAT) ---
-        // User::create(['name' => 'Resepsionis GA', 'email' => 'resepsionis.ga@satoria.com', 'password' => Hash::make('password')])
-        //     ->profile()->create(['subsidiary_id' => $pusat->id, 'department_id' => $gaDept->id, 'role_id' => $receptionistRole->id, 'level_id' => $staffLevel->id]);
-        // User::create(['name' => 'Staff GA', 'email' => 'staff.ga@satoria.com', 'password' => Hash::make('password')])
-        //     ->profile()->create(['subsidiary_id' => $pusat->id, 'department_id' => $gaDept->id, 'role_id' => $staffRole->id, 'level_id' => $staffLevel->id]);
-        // User::create(['name' => 'SPV GA', 'email' => 'spv.ga@satoria.com', 'password' => Hash::make('password')])
-        //     ->profile()->create(['subsidiary_id' => $pusat->id, 'department_id' => $gaDept->id, 'role_id' => $staffRole->id, 'level_id' => $spvLevel->id]);
-        // User::create(['name' => 'Manager GA', 'email' => 'manager.ga@satoria.com', 'password' => Hash::make('password')])
-        //     ->profile()->create(['subsidiary_id' => $pusat->id, 'department_id' => $gaDept->id, 'role_id' => $approverRole->id, 'level_id' => $managerLevel->id]);
 
-        // // --- DEPT PRODUKSI (DIBEDAKAN OLEH SUBSIDIARY) ---
-        // // Produksi untuk Agro
-        // User::create(['name' => 'Staff Produksi Agro', 'email' => 'staff.prod.agro@satoria.com', 'password' => Hash::make('password')])
-        //     ->profile()->create(['subsidiary_id' => $agro->id, 'department_id' => $produksiDept->id, 'role_id' => $staffRole->id, 'level_id' => $staffLevel->id]);
-        // User::create(['name' => 'SPV Produksi Agro', 'email' => 'spv.prod.agro@satoria.com', 'password' => Hash::make('password')])
-        //     ->profile()->create(['subsidiary_id' => $agro->id, 'department_id' => $produksiDept->id, 'role_id' => $staffRole->id, 'level_id' => $spvLevel->id]);
-        // User::create(['name' => 'Manager Produksi Agro', 'email' => 'manager.prod.agro@satoria.com', 'password' => Hash::make('password')])
-        //     ->profile()->create(['subsidiary_id' => $agro->id, 'department_id' => $produksiDept->id, 'role_id' => $approverRole->id, 'level_id' => $managerLevel->id]);
+        // --- DEPUTI (APPROVER TERTINGGI) ---
+        $deputiAgro = User::updateOrCreate(['name' => 'Deputi Agro', 'email' => 'deputi.agro@satoria.com', 'password' => Hash::make('password')]);
+        $deputiAgro->profile()->updateOrCreate(['subsidiary_id' => $subsidiaries['Agro'], 'department_id' => $departments['GA'], 'level_id' => $levels['Deputi']]);
+        $deputiAgro->assignRole('Approver');
 
-        // // Produksi untuk Aneka
-        // User::create(['name' => 'Staff Produksi Aneka', 'email' => 'staff.prod.aneka@satoria.com', 'password' => Hash::make('password')])
-        //     ->profile()->create(['subsidiary_id' => $aneka->id, 'department_id' => $produksiDept->id, 'role_id' => $staffRole->id, 'level_id' => $staffLevel->id]);
-        // User::create(['name' => 'SPV Produksi Aneka', 'email' => 'spv.prod.aneka@satoria.com', 'password' => Hash::make('password')])
-        //     ->profile()->create(['subsidiary_id' => $aneka->id, 'department_id' => $produksiDept->id, 'role_id' => $staffRole->id, 'level_id' => $spvLevel->id]);
-        // User::create(['name' => 'Manager Produksi Aneka', 'email' => 'manager.prod.aneka@satoria.com', 'password' => Hash::make('password')])
-        //     ->profile()->create(['subsidiary_id' => $aneka->id, 'department_id' => $produksiDept->id, 'role_id' => $approverRole->id, 'level_id' => $managerLevel->id]);
+        $deputiAneka = User::updateOrCreate(['name' => 'Deputi Aneka', 'email' => 'deputi.aneka@satoria.com', 'password' => Hash::make('password')]);
+        $deputiAneka->profile()->updateOrCreate(['subsidiary_id' => $subsidiaries['Aneka'], 'department_id' => $departments['GA'], 'level_id' => $levels['Deputi']]);
+        $deputiAneka->assignRole('Approver');
+
+
+        // --- DEPARTEMEN-DEPARTEMEN DI SUBSIDIARY PUSAT ---
+
+        // Dept IT (Pusat)
+        $managerIt = User::updateOrCreate(['name' => 'Manager IT', 'email' => 'manager.it@satoria.com', 'password' => Hash::make('password')]);
+        $managerIt->profile()->updateOrCreate(['subsidiary_id' => $subsidiaries['Pusat'], 'department_id' => $departments['IT'], 'level_id' => $levels['Manager']]);
+        $managerIt->assignRole('Staff');
+        $managerIt->assignRole('Approver');
+
+        $spvIt = User::updateOrCreate(['name' => 'SPV IT', 'email' => 'spv.it@satoria.com', 'password' => Hash::make('password')]);
+        $spvIt->profile()->updateOrCreate(['subsidiary_id' => $subsidiaries['Pusat'], 'department_id' => $departments['IT'], 'level_id' => $levels['SPV']]);
+        $spvIt->assignRole('Staff');
+
+        // Dept HRD (Pusat) - Punya Role Spesial
+        $managerHrd = User::updateOrCreate(['name' => 'Manager HRD', 'email' => 'manager.hrd@satoria.com', 'password' => Hash::make('password')]);
+        $managerHrd->profile()->updateOrCreate(['subsidiary_id' => $subsidiaries['Pusat'], 'department_id' => $departments['HRD'], 'level_id' => $levels['Manager']]);
+        $managerHrd->assignRole('Approver');
+        $managerHrd->assignRole('HRD'); // Diberi role tambahan 'HRD'
+        $managerHrd->assignRole('Staff'); // Diberi role tambahan 'HRD'
+
+        $staffHrd = User::updateOrCreate(['name' => 'Staff HRD', 'email' => 'staff.hrd@satoria.com', 'password' => Hash::make('password')]);
+        $staffHrd->profile()->updateOrCreate(['subsidiary_id' => $subsidiaries['Pusat'], 'department_id' => $departments['HRD'], 'level_id' => $levels['Staff']]);
+        $staffHrd->assignRole('Staff');
+        $staffHrd->assignRole('HRD'); // Diberi role tambahan 'HRD'
+
+        // Dept GA (Pusat) - Ada Resepsionis di sini
+        $managerGa = User::updateOrCreate(['name' => 'Manager GA', 'email' => 'manager.ga@satoria.com', 'password' => Hash::make('password')]);
+        $managerGa->profile()->updateOrCreate(['subsidiary_id' => $subsidiaries['Pusat'], 'department_id' => $departments['GA'], 'level_id' => $levels['Manager']]);
+        $managerGa->assignRole('Approver');
+        $managerGa->assignRole('Staff');
+
+        $resepsionis = User::updateOrCreate(['name' => 'Resepsionis GA', 'email' => 'resepsionis.ga@satoria.com', 'password' => Hash::make('password')]);
+        $resepsionis->profile()->updateOrCreate(['subsidiary_id' => $subsidiaries['Pusat'], 'department_id' => $departments['GA'], 'level_id' => $levels['Staff']]);
+        $resepsionis->assignRole('Resepsionis');
+
+
+        // --- DEPARTEMEN PRODUKSI DI MASING-MASING SUBSIDIARY ---
+
+        // Produksi untuk Agro
+        $managerProdAgro = User::updateOrCreate(['name' => 'Manager Produksi Agro', 'email' => 'manager.prod.agro@satoria.com', 'password' => Hash::make('password')]);
+        $managerProdAgro->profile()->updateOrCreate(['subsidiary_id' => $subsidiaries['Agro'], 'department_id' => $departments['Produksi'], 'level_id' => $levels['Manager']]);
+        $managerProdAgro->assignRole('Approver');
+        $managerProdAgro->assignRole('Staff');
+
+        $staffProdAgro = User::updateOrCreate(['name' => 'Staff Produksi Agro', 'email' => 'staff.prod.agro@satoria.com', 'password' => Hash::make('password')]);
+        $staffProdAgro->profile()->updateOrCreate(['subsidiary_id' => $subsidiaries['Agro'], 'department_id' => $departments['Produksi'], 'level_id' => $levels['Staff']]);
+        $staffProdAgro->assignRole('Staff');
+
+        // Produksi untuk Aneka
+        $managerProdAneka = User::updateOrCreate(['name' => 'Manager Produksi Aneka', 'email' => 'manager.prod.aneka@satoria.com', 'password' => Hash::make('password')]);
+        $managerProdAneka->profile()->updateOrCreate(['subsidiary_id' => $subsidiaries['Aneka'], 'department_id' => $departments['Produksi'], 'level_id' => $levels['Manager']]);
+        $managerProdAneka->assignRole('Approver');
+        $managerProdAneka->assignRole('Staff');
+
+        $staffProdAneka = User::updateOrCreate(['name' => 'Staff Produksi Aneka', 'email' => 'staff.prod.aneka@satoria.com', 'password' => Hash::make('password')]);
+        $staffProdAneka->profile()->updateOrCreate(['subsidiary_id' => $subsidiaries['Aneka'], 'department_id' => $departments['Produksi'], 'level_id' => $levels['Staff']]);
+        $staffProdAneka->assignRole('Staff');
     }
 }

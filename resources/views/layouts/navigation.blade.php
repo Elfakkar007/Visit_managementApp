@@ -1,176 +1,33 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
-    <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+{{-- File Baru: resources/views/layouts/navigation.blade.php --}}
+<nav class="bg-white border-b border-gray-100">
+    <div class="w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
-            <div class="flex">
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
-                        <!-- <x-application-logo class="block h-9 w-auto fill-current text-gray-800" /> -->
-                    </a>
-                </div>
-
-                <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    {{-- 1. Link "Request Saya" (Untuk semua yang bisa request, KECUALI Deputi) --}}
-                    @if(in_array(Auth::user()->profile?->role?->name, ['Staff', 'Approver', 'Resepsionis']) && Auth::user()->profile?->level?->name !== 'Deputi')
-                        <x-nav-link :href="route('requests.my')" :active="request()->routeIs('requests.my') || request()->routeIs('requests.create')">
-                            {{ __('Request Saya') }}
-                        </x-nav-link>
-                    @endif
-
-                    {{-- 2. Link "Approval" (HANYA untuk Approver) --}}
-                    @if(Auth::user()->profile?->role?->name === 'Approver')
-                        @if(Auth::user()->profile?->department?->name === 'HRD')
-                            <x-nav-link :href="route('requests.hrd_approval')" :active="request()->routeIs('requests.hrd_approval')">
-                                {{ __('Approval HRD') }}
-                            </x-nav-link>
-                        @else
-                            <x-nav-link :href="route('requests.approval')" :active="request()->routeIs('requests.approval')">
-                                {{ __('Approval') }}
-                            </x-nav-link>
-                        @endif
-                    @endif
-                    
-                    {{-- 3. Link "Pantau Semua" (HANYA untuk departemen HRD) --}}
-                    @if(Auth::user()->profile?->department?->name === 'HRD')
-                        <x-nav-link :href="route('requests.monitor')" :active="request()->routeIs('requests.monitor')">
-                            {{ __('Pantau Semua') }}
-                        </x-nav-link>
-                    @endif
-
-                    {{-- 4. Link "Manajemen Tamu" (HANYA untuk Resepsionis) --}}
-                    @if(Auth::user()->profile?->role?->name === 'Resepsionis')
-                        <x-nav-link :href="route('receptionist.scanner')" :active="request()->routeIs('receptionist.scanner')">
-                            {{ __('Scanner Tamu') }}
-                        </x-nav-link>
-                        <x-nav-link :href="route('receptionist.guestStatus')" :active="request()->routeIs('receptionist.guestStatus')">
-                            {{ __('Status Tamu') }}
-                        </x-nav-link>
-                        <x-nav-link :href="route('receptionist.history')" :active="request()->routeIs('receptionist.history')">
-                            {{ __('Riwayat Kunjungan') }}
-                        </x-nav-link>
-                    @endif
-                    
-                    {{-- 5. Link "Admin Dashboard" (HANYA untuk Admin) --}}
-                    @if(Auth::user()->profile?->role?->name === 'Admin')
-                        <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">
-                            {{ __('Admin Dashboard') }}
-                        </x-nav-link>
-                    @endif
+            
+            <div class="flex items-center">
+                <div class="flex items-center space-x-2">
+                     <button data-drawer-target="app-sidebar" data-drawer-toggle="app-sidebar" aria-controls="app-sidebar" type="button" class="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
+                    <span class="sr-only">Buka sidebar</span>
+                    <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                       <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
+                    </svg>
+                 </button>
+                    <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
+                    <span class="text-sm text-gray-500">|</span>
+                    <div class="font-medium text-sm text-gray-500">{{ Auth::user()->profile->department->name ?? 'No Department' }}</div>
+                    <span class="text-sm text-gray-500">|</span>
+                    <div class="font-medium text-sm text-gray-500">{{ Auth::user()->profile->level->name ?? 'No Level' }}</div>
                 </div>
             </div>
 
-            <!-- Desktop User Settings -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
-                <div class="me-3 text-right">
-                    <div class="font-medium text-sm text-gray-800">{{ Auth::user()->name }}</div>
-                    <div class="text-xs text-gray-500">
-                        {{ Auth::user()->profile?->department?->name }} | {{ Auth::user()->profile?->level?->name }}
-                    </div>
-                </div>
-
+            <div class="flex items-center">
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                        {{ __('Log Out') }}
+                    <button type="submit"  class="text-red-700 hover:text-white border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900">
+                        Log Out
                     </button>
                 </form>
             </div>
 
-            <!-- Hamburger Menu (Mobile) -->
-            <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" 
-                        class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" 
-                              class="inline-flex" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round" 
-                              stroke-width="2" 
-                              d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" 
-                              class="hidden" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round" 
-                              stroke-width="2" 
-                              d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Mobile Navigation Menu -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
-        <div class="pt-2 pb-3 space-y-1">
-            {{-- 1. Link "Request Saya" --}}
-            @if(in_array(Auth::user()->profile?->role?->name, ['Staff', 'Approver', 'Resepsionis']) && Auth::user()->profile?->level?->name !== 'Deputi')
-                <x-responsive-nav-link :href="route('requests.my')" :active="request()->routeIs('requests.my') || request()->routeIs('requests.create')">
-                    {{ __('Request Saya') }}
-                </x-responsive-nav-link>
-            @endif
-
-            {{-- 2. Link "Approval" --}}
-            @if(Auth::user()->profile?->role?->name === 'Approver')
-                @if(Auth::user()->profile?->department?->name === 'HRD')
-                    <x-responsive-nav-link :href="route('requests.hrd_approval')" :active="request()->routeIs('requests.hrd_approval')">
-                        {{ __('Approval HRD') }}
-                    </x-responsive-nav-link>
-                @else
-                    <x-responsive-nav-link :href="route('requests.approval')" :active="request()->routeIs('requests.approval')">
-                        {{ __('Approval') }}
-                    </x-responsive-nav-link>
-                @endif
-            @endif
-            
-            {{-- 3. Link "Pantau Semua" --}}
-            @if(Auth::user()->profile?->department?->name === 'HRD')
-                <x-responsive-nav-link :href="route('requests.monitor')" :active="request()->routeIs('requests.monitor')">
-                    {{ __('Pantau Semua') }}
-                </x-responsive-nav-link>
-            @endif
-
-            {{-- 4. Link "Manajemen Tamu" --}}
-            @if(Auth::user()->profile?->role?->name === 'Resepsionis')
-                <x-responsive-nav-link :href="route('receptionist.scanner')" :active="request()->routeIs('receptionist.scanner')">
-                    {{ __('Scanner Tamu') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('receptionist.guestStatus')" :active="request()->routeIs('receptionist.guestStatus')">
-                    {{ __('Status Tamu') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('receptionist.history')" :active="request()->routeIs('receptionist.history')">
-                    {{ __('Riwayat Kunjungan') }}
-                </x-responsive-nav-link>
-            @endif
-            
-            {{-- 5. Link "Admin Dashboard" --}}
-            @if(Auth::user()->profile?->role?->name === 'Admin')
-                <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">
-                    {{ __('Admin Dashboard') }}
-                </x-responsive-nav-link>
-            @endif
-        </div>
-
-        <!-- Mobile User Settings -->
-        <div class="pt-4 pb-1 border-t border-gray-200">
-            <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                <div class="text-xs text-gray-500">
-                    {{ Auth::user()->profile?->department?->name }} | {{ Auth::user()->profile?->level?->name }}
-                </div>
-            </div>
-
-            <div class="mt-3 space-y-1">
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <x-responsive-nav-link :href="route('logout')"
-                                onclick="event.preventDefault();
-                                            this.closest('form').submit();">
-                        {{ __('Log Out') }}
-                    </x-responsive-nav-link>
-                </form>
-            </div>
         </div>
     </div>
 </nav>

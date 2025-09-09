@@ -9,6 +9,7 @@ class UserController extends Controller
 {
     public function index()
     {
+        $this->authorize('view users');
         return view('admin.users.index');
     }
 }

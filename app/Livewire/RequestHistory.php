@@ -2,30 +2,31 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
-use Livewire\WithPagination;
+use App\Models\Status;
+use App\Models\User;
 use App\Models\VisitRequest;
 use App\Models\Department;
 use App\Models\Subsidiary;
-use App\Models\Status;
-use App\Models\User;
-use App\Models\Level;
+use App\Models\ApprovalWorkflow;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Gate;
+use Livewire\Component;
+use Livewire\WithPagination;
 use App\Exports\VisitRequestsExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Livewire\Attributes\On;
 
 class RequestHistory extends Component
 {
     use WithPagination;
 
-    public $mode = 'monitor';
+    public $mode;
     public $filterUser = '', $filterDepartment = '', $filterSubsidiary = '', $filterStatus = '', $filterDate = '';
+    
     public $showDetailModal = false;
     public $selectedRequest;
-
-    // Properti baru untuk form di modal
-    public $rejection_reason = '';
+    
+    // Mengganti nama properti agar lebih umum (bisa untuk approve/reject)
+    public $approverNote = '';
 
     public function updating($property)
     {
@@ -34,122 +35,151 @@ class RequestHistory extends Component
         }
     }
 
+    // Aksi approve, bisa dipanggil dari tabel atau modal
+    #[On('approve-request')]
+    public function approve($requestId)
+    {
+        $visitRequest = VisitRequest::findOrFail($requestId);
+        $this->authorize('approve', $visitRequest);
+
+        $approvedStatus = Status::where('name', 'Approved')->firstOrFail();
+        $visitRequest->update([
+            'status_id' => $approvedStatus->id,
+            'approved_by' => Auth::id(),
+            'approved_at' => now(),
+            'approver_note' => $this->approverNote ?: null // Simpan catatan jika ada
+        ]);
+
+        $visitRequest->user->notify(new \App\Notifications\VisitRequestStatusUpdated($visitRequest->refresh()));
+        $this->dispatch('show-toast', type: 'success', message: 'Permintaan berhasil disetujui.');
+        $this->closeModal();
+    }
+
+    // Aksi reject, bisa dipanggil dari tabel atau modal
+    #[On('reject-request')]
+    public function reject($requestId)
+    {
+        $visitRequest = VisitRequest::findOrFail($requestId);
+        $this->authorize('approve', $visitRequest);
+        
+        // VALIDASI DIHAPUSKAN KARENA CATATAN SEKARANG OPSIONAL
+
+        $rejectedStatus = Status::where('name', 'Rejected')->firstOrFail();
+        $visitRequest->update([
+            'status_id' => $rejectedStatus->id,
+            'approved_by' => Auth::id(), // Tetap catat siapa yang beraksi
+            'approved_at' => now(), // Tetap catat waktu aksi
+            'approver_note' => $this->approverNote ?: 'Ditolak tanpa catatan.' // Simpan catatan jika ada, jika tidak beri default
+        ]);
+        
+        $visitRequest->user->notify(new \App\Notifications\VisitRequestStatusUpdated($visitRequest->refresh()));
+        $this->dispatch('show-toast', type: 'error', message: 'Permintaan telah ditolak.');
+        $this->closeModal();
+    }
+    
+    // Aksi untuk membuka modal detail
     public function viewDetail($requestId)
     {
-        $this->selectedRequest = VisitRequest::with(['user.profile.department', 'user.profile.subsidiary', 'status', 'approver'])->find($requestId);
+        $this->approverNote = ''; // Reset catatan setiap kali modal dibuka
+        $this->selectedRequest = VisitRequest::with(['user.profile.department', 'status', 'approver'])
+            ->findOrFail($requestId);
+        // Isi textarea dengan catatan yang sudah ada jika ada
+        $this->approverNote = $this->selectedRequest->approver_note ?? '';
         $this->showDetailModal = true;
     }
 
     public function closeModal()
     {
-        $this->showDetailModal = false;
-        $this->selectedRequest = null;
-        $this->rejection_reason = ''; // Reset catatan saat modal ditutup
+        $this->reset(['showDetailModal', 'selectedRequest', 'approverNote']);
     }
-
-    // --- LOGIKA AKSI BARU ---
-    public function approveRequest()
-    {
-        if (!$this->selectedRequest) return;
-
-        Gate::authorize('approve', $this->selectedRequest);
-        
-        $approvedStatus = Status::where('name', 'Approved')->firstOrFail();
-        $this->selectedRequest->update([
-            'status_id' => $approvedStatus->id, 
-            'approved_by' => Auth::id(), 
-            'approved_at' => now(), 
-            'rejection_reason' => $this->rejection_reason ?: null // Simpan catatan jika ada
-        ]);
-        
-        session()->flash('success', 'Permintaan berhasil disetujui.');
-        $this->closeModal();
-    }
-
-    public function rejectRequest()
-    {
-        if (!$this->selectedRequest) return;
-
-        Gate::authorize('approve', $this->selectedRequest);
-
-        $rejectedStatus = Status::where('name', 'Rejected')->firstOrFail();
-        $this->selectedRequest->update([
-            'status_id' => $rejectedStatus->id,
-            'approved_by' => Auth::id(), // Catat siapa yang menolak
-            'approved_at' => now(), // Catat kapan ditolak
-            'rejection_reason' => $this->rejection_reason
-        ]);
-
-        session()->flash('success', 'Permintaan telah ditolak.');
-        $this->closeModal();
-    }
-
-
 
     public function exportExcel()
     {
-        $filters = [
-            'filterUser' => $this->filterUser,
-            'filterDepartment' => $this->filterDepartment,
-            'filterSubsidiary' => $this->filterSubsidiary,
-            'filterStatus' => $this->filterStatus,
-            'filterDate' => $this->filterDate,
-        ];
-        return Excel::download(new VisitRequestsExport($filters), 'laporan_aktivitas_request.xlsx');
+        $this->authorize('view all visit requests');
+        $filters = $this->only(['filterUser', 'filterDepartment', 'filterSubsidiary', 'filterStatus', 'filterDate']);
+        return Excel::download(new VisitRequestsExport($filters), 'laporan_request_kunjungan.xlsx');
     }
 
     private function buildQuery()
     {
         $query = VisitRequest::query()->with(['user.profile.department', 'user.profile.subsidiary', 'status', 'user.profile.level', 'approver']);
         $user = Auth::user();
-        $userProfile = $user->profile;
 
-        // --- LOGIKA APPROVAL BARU YANG SANGAT KETAT ---
-        if ($this->mode === 'approval' || $this->mode === 'hrd_approval') {
-            $query->where('status_id', Status::where('name', 'Pending')->firstOrFail()->id);
+        switch ($this->mode) {
+            case 'my_requests':
+                $query->where('user_id', $user->id);
+                break;
+            case 'approval':
+                 // 1. Ambil data approver yang sedang login
+                $approver = $user;
+                $approverLevelId = $approver->profile->level_id;
+                $approverDepartmentId = $approver->profile->department_id;
+                $approverSubsidiaryId = $approver->profile->subsidiary_id;
+
+                // 2. Cari semua aturan workflow yang berlaku untuk level approver ini
+                $applicableRules = ApprovalWorkflow::where('approver_level_id', $approverLevelId)->get();
+                
+                // 3. Bangun query dasar untuk request yang relevan
+                $query->where(function ($q) use ($applicableRules, $approverDepartmentId, $approverSubsidiaryId) {
+                    if ($applicableRules->isEmpty()) {
+                        $q->whereRaw('1 = 0'); // Jika tidak ada aturan, jangan tampilkan apa-apa
+                        return;
+                    }
+                    foreach ($applicableRules as $rule) {
+                        $q->orWhere(function ($subQuery) use ($rule, $approverDepartmentId, $approverSubsidiaryId) {
+                            $subQuery->whereHas('user.profile', fn($p) => $p->where('level_id', $rule->requester_level_id));
+                            if ($rule->scope === 'department') {
+                                $subQuery->whereHas('user.profile', fn($p) => $p->where('department_id', $approverDepartmentId));
+                            } elseif ($rule->scope === 'subsidiary') {
+                                $subQuery->whereHas('user.profile', fn($p) => $p->where('subsidiary_id', $approverSubsidiaryId));
+                            }
+                        });
+                    }
+                });
+
+                // 4. KONDISI UTAMA: Cek apakah user punya izin untuk melihat riwayat
+                if (! $approver->can('view approval history')) {
+                    // Jika TIDAK punya izin, filter HANYA untuk status 'Pending'
+                    $query->whereHas('status', fn($q) => $q->where('name', 'Pending'));
+                }
+                // Jika user punya izin, maka filter status 'Pending' ini dilewati,
+                // sehingga semua request (approved, rejected, dll.) akan tampil.
+                
+                break;
+
+                
             
-            $userLevelName = $userProfile->level->name;
-
-            if ($userLevelName === 'Manager') {
-                $query->whereHas('user.profile', function ($q) use ($userProfile) {
-                    $q->where('department_id', $userProfile->department_id)
-                      ->where('subsidiary_id', $userProfile->subsidiary_id)
-                      ->whereIn('level_id', Level::whereIn('name', ['Staff', 'SPV'])->pluck('id'));
-                });
-            } elseif ($userLevelName === 'Deputi') {
-                $pusatId = Subsidiary::where('name', 'Pusat')->firstOrFail()->id;
-                $query->whereHas('user.profile', function ($q) use ($userProfile, $pusatId) {
-                    $q->where('level_id', Level::where('name', 'Manager')->firstOrFail()->id)
-                      ->where(function ($subq) use ($userProfile, $pusatId) {
-                          $subq->where('subsidiary_id', $userProfile->subsidiary_id)
-                               ->orWhere('subsidiary_id', $pusatId);
-                      });
-                });
-            } else {
-                $query->whereRaw('1 = 0'); // Mencegah level lain melihat data approval
-            }
-        }
-        
-        // Terapkan filter manual HANYA jika mode-nya adalah monitor atau admin
-        if ($this->mode === 'monitor' || $this->mode === 'admin') {
-            $query->when($this->filterUser, fn($q) => $q->where('user_id', $this->filterUser));
-            $query->when($this->filterDepartment, fn($q) => $q->whereHas('user.profile', fn($subq) => $subq->where('department_id', $this->filterDepartment)));
-            $query->when($this->filterSubsidiary, fn($q) => $q->whereHas('user.profile', fn($subq) => $subq->where('subsidiary_id', $this->filterSubsidiary)));
-            $query->when($this->filterStatus, fn($q) => $q->where('status_id', $this->filterStatus));
-            $query->when($this->filterDate, fn($q) => $q->whereDate('from_date', '=', \Carbon\Carbon::parse($this->filterDate)->format('Y-m-d')));
         }
 
-        return $query->latest();
+        $query->when($this->filterUser, fn($q) => $q->where('user_id', $this->filterUser));
+        $query->when($this->filterDepartment, fn($q) => $q->whereHas('user.profile', fn($subq) => $subq->where('department_id', $this->filterDepartment)));
+        $query->when($this->filterSubsidiary, fn($q) => $q->whereHas('user.profile', fn($subq) => $subq->where('subsidiary_id', $this->filterSubsidiary)));
+        $query->when($this->filterStatus, fn($q) => $q->where('status_id', $this->filterStatus));
+        $query->when($this->filterDate, fn($q) => $q->whereDate('from_date', '=', \Carbon\Carbon::parse($this->filterDate)->format('Y-m-d')));
+
+        return $query->latest('created_at');
     }
 
     public function render()
     {
+        $statuses = Status::all()->mapWithKeys(function ($status) {
+            $color = match (strtolower($status->name)) {
+                'approved' => 'bg-green-100 text-green-800',
+                'rejected' => 'bg-red-100 text-red-800',
+                'cancelled' => 'bg-orange-100 text-orange-800',
+                'pending' => 'bg-yellow-100 text-yellow-800',
+                default => 'bg-gray-100 text-gray-800',
+            };
+            return [$status->id => $color];
+        });
+
         return view('livewire.request-history', [
-            'requests' => $this->buildQuery()->paginate(15),
+            'requests' => $this->buildQuery()->paginate(10),
             'departments' => Department::orderBy('name')->get(),
             'subsidiaries' => Subsidiary::orderBy('name')->get(),
-            'statuses' => Status::all(),
+            'all_statuses' => Status::all(),
             'users' => User::orderBy('name')->get(),
+            'statusColors' => $statuses,
         ]);
     }
 }

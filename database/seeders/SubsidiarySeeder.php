@@ -9,8 +9,8 @@ class SubsidiarySeeder extends Seeder
 {
     public function run(): void
     {
-        Subsidiary::create(['name' => 'Pusat']);
-        Subsidiary::create(['name' => 'Agro']);
-        Subsidiary::create(['name' => 'Aneka']);
+        Subsidiary::firstOrCreate(['name' => 'Pusat']);
+        Subsidiary::firstOrCreate(['name' => 'Agro']);
+        Subsidiary::firstOrCreate(['name' => 'Aneka']);
     }
 }

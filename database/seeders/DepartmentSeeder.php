@@ -9,9 +9,9 @@ class DepartmentSeeder extends Seeder
 {
     public function run(): void
     {
-        Department::create(['name' => 'IT']);
-        Department::create(['name' => 'HRD']);
-        Department::create(['name' => 'GA']);
-        Department::create(['name' => 'Produksi']); // Hanya satu
+        Department::firstOrCreate(['name' => 'IT']);
+        Department::firstOrCreate(['name' => 'HRD']);
+        Department::firstOrCreate(['name' => 'GA']);
+        Department::firstOrCreate(['name' => 'Produksi']); // Hanya satu
     }
 }

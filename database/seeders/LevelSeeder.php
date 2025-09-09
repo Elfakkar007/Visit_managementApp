@@ -9,9 +9,9 @@ class LevelSeeder extends Seeder
 {
     public function run(): void
     {
-        Level::create(['name' => 'Staff']);
-        Level::create(['name' => 'SPV']);
-        Level::create(['name' => 'Manager']); // <-- Diperbaiki
-        Level::create(['name' => 'Deputi']);
+        Level::firstOrCreate(['name' => 'Staff']);
+        Level::firstOrCreate(['name' => 'SPV']);
+        Level::firstOrCreate(['name' => 'Manager']); // <-- Diperbaiki
+        Level::firstOrCreate(['name' => 'Deputi']);
     }
 }

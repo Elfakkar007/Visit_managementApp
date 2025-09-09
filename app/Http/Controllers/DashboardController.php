@@ -10,39 +10,48 @@ class DashboardController extends Controller
 {
     /**
      * Mengarahkan pengguna ke halaman yang sesuai berdasarkan perannya.
+     * Versi ini sudah menggunakan Spatie Roles & Permissions.
      */
     public function index()
     {
         $user = Auth::user();
 
-        // Keamanan: Jika user tidak memiliki profil, logout.
+        // Keamanan: Jika user tidak memiliki profil, logout. Ini sudah bagus.
         if (!$user->profile) {
             Auth::logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
             return Redirect::route('login')->with('error', 'Akun Anda tidak lengkap. Hubungi Administrator.');
         }
         
-        $roleName = $user->profile->role->name;
-
-        // --- Aturan Pengalihan Berdasarkan Peran ---
+        // --- Aturan Pengalihan Baru Berdasarkan Peran dari Spatie ---
         
-        if ($roleName === 'Admin') {
+        // Peran diperiksa dari yang paling spesifik/berkuasa
+        if ($user->hasRole('Admin')) {
             return Redirect::route('admin.dashboard');
         }
         
-        if ($roleName === 'Resepsionis') {
+        if ($user->hasRole('Resepsionis')) {
             return Redirect::route('receptionist.scanner');
         }
+        
+        // Untuk HRD, kita bisa arahkan ke halaman monitor khususnya
+        if ($user->hasRole('HRD')) {
+            return Redirect::route('requests.monitor');
+        }
 
-        if ($roleName === 'Approver') {
-            // Cek dulu apakah approver ini dari departemen HRD
-            if ($user->profile->department?->name === 'HRD') {
-                return Redirect::route('requests.hrd_approval');
-            }
-            
-            // Jika bukan, baru arahkan ke approval umum
+        if ($user->hasRole('Approver')) {
             return Redirect::route('requests.approval');
         }
-        // Default untuk peran 'Staff'
-        return Redirect::route('requests.my');
+
+        if ($user->hasRole('Staff')) {
+            return Redirect::route('requests.my');
+        }
+
+        // Fallback: Jika user login tapi tidak punya peran yang dikenali, logout demi keamanan.
+        Auth::logout();
+        request()->session()->invalidate();
+        request()->session()->regenerateToken();
+        return Redirect::route('login')->with('error', 'Anda tidak memiliki peran yang valid.');
     }
 }

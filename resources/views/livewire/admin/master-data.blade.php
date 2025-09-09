@@ -54,7 +54,7 @@
             <div class="flex justify-between items-center mb-4">
                 <input wire:model.live.debounce.300ms="search" type="text" placeholder="Cari..." class="w-1/3 border-gray-300 rounded-lg shadow-sm">
                 <button wire:click="create" class="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700">
-                    Tambah {{ $title }}
+                   + Tambah {{ $title }}
                 </button>
             </div>
 

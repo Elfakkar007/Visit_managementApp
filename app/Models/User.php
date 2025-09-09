@@ -8,10 +8,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -68,5 +69,36 @@ class User extends Authenticatable
     }
     public function getSubsidiaryIdAttribute() {
         return $this->profile->subsidiary_id;
+    }
+   
+
+        public function getApprovers()
+    {
+
+        $workflow = \App\Models\ApprovalWorkflow::where('requester_level_id', $this->profile->level_id)->first();
+
+        if (!$workflow) {
+            return collect(); // Kembalikan koleksi kosong jika tidak ada aturan
+        }
+
+        // Cari semua user yang memiliki level approver yang sesuai
+        $approvers = User::whereHas('profile', function ($query) use ($workflow) {
+            $query->where('level_id', $workflow->approver_level_id);
+
+            // Terapkan filter scope (department atau subsidiary)
+            if ($workflow->scope === 'department') {
+                $query->where('department_id', $this->profile->department_id);
+            } elseif ($workflow->scope === 'subsidiary') {
+                // Logika khusus untuk Pusat
+                if ($this->profile->subsidiary->name === 'Pusat') {
+                    $agroAnekaIds = \App\Models\Subsidiary::whereIn('name', ['Agro', 'Aneka'])->pluck('id');
+                    $query->whereIn('subsidiary_id', $agroAnekaIds);
+                } else {
+                    $query->where('subsidiary_id', $this->profile->subsidiary_id);
+                }
+            }
+        })->get();
+
+        return $approvers;
     }
 }

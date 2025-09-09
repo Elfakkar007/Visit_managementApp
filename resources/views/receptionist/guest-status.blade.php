@@ -1,6 +1,6 @@
 @php
-    // Cek apakah user yang login adalah Admin
-    $layout = Auth::user()->profile?->role?->name === 'Admin' ? 'admin-layout' : 'app-layout';
+    // DIUBAH: Gunakan fungsi hasRole() dari Spatie yang dinamis
+    $layout = Auth::user()->hasRole('Admin') ? 'admin-layout' : 'app-layout';
 @endphp
 
 <x-dynamic-component :component="$layout">

@@ -11,10 +11,12 @@ class DatabaseSeeder extends Seeder
         $this->call([
             SubsidiarySeeder::class,
             DepartmentSeeder::class,
-            RoleSeeder::class,
             LevelSeeder::class,
             StatusSeeder::class,
-            UserSeeder::class, // UserSeeder dipanggil terakhir
+            RolesAndPermissionsSeeder::class,
+            ApprovalWorkflowSeeder::class, 
+
         ]);
+        $this->call(UserSeeder::class);
     }
 }

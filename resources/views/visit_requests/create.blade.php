@@ -1,6 +1,6 @@
 @php
-    // Tentukan layout yang akan digunakan berdasarkan peran pengguna
-    $layout = Auth::user()->profile?->role?->name === 'Admin' ? 'admin-layout' : 'app-layout';
+    // DIUBAH: Gunakan fungsi hasRole() dari Spatie yang lebih andal
+    $layout = Auth::user()->hasRole('Admin') ? 'admin-layout' : 'app-layout';
 @endphp
 
 <x-dynamic-component :component="$layout">
@@ -48,7 +48,7 @@
 
                         {{-- Tombol Aksi --}}
                         <div class="flex items-center justify-end pt-4 border-t border-gray-200">
-                            <a href="{{ route('requests.my') }}" class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2">
+                            <a href="{{ url()->previous() }}" class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2">
                                 Batal
                             </a>
                             <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2">

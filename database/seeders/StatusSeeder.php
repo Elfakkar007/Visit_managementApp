@@ -9,9 +9,9 @@ class StatusSeeder extends Seeder
 {
     public function run(): void
     {
-        Status::create(['name' => 'Pending', 'color' => 'yellow']);
-        Status::create(['name' => 'Approved', 'color' => 'green']);
-        Status::create(['name' => 'Rejected', 'color' => 'red']);
-        Status::create(['name' => 'Cancelled', 'color' => 'gray']);
+        Status::firstOrCreate(['name' => 'Pending', 'color' => 'yellow']);
+        Status::firstOrCreate(['name' => 'Approved', 'color' => 'green']);
+        Status::firstOrCreate(['name' => 'Rejected', 'color' => 'red']);
+        Status::firstOrCreate(['name' => 'Cancelled', 'color' => 'gray']);
     }
 }

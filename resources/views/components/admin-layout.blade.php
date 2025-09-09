@@ -50,6 +50,24 @@
 
         @livewireScripts
         @stack('scripts')
+         <script>
+        document.addEventListener('livewire:initialized', () => {
+            @Livewire.on('show-toast', (event) => {
+                Toastify({
+                    text: event.message,
+                    duration: 3000,
+                    gravity: "top", 
+                    position: "right", 
+                    stopOnFocus: true,
+                    style: {
+                        background: event.type === 'success' ? '#10B981' : '#EF4444',
+                    },
+                }).showToast();
+            });
+        });
+    </script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
         {{-- Pastikan script Flowbite di-load jika belum ada di app.js --}}
     </html>
     
