@@ -16,7 +16,7 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        // Mendaftarkan VisitRequestPolicy untuk model VisitRequest
+        // 1. Ini sudah benar, kita tetap mendaftarkan Policy utama kita.
         VisitRequest::class => VisitRequestPolicy::class,
     ];
 
@@ -27,18 +27,13 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        // --- DEFINISI SEMUA GATE ---
-
-        // Gate untuk menu "Approval Dashboard"
-        Gate::define('view-approval-dashboard', function (User $user) {
-            return $user->profile?->role?->name === 'Approver';
-        });
-
-        // Gate untuk menu "Lihat Semua Request" (khusus HRD)
-        Gate::define('view-all-requests', function (User $user) {
-            return $user->profile?->department?->name === 'HRD';
-        });
-
        
+        Gate::before(function (User $user, string $ability) {
+            return $user->hasRole('Admin') ? true : null;
+        });
+
+        Gate::before(function ($user, $ability) {
+            return $user->hasRole('Admin') ? true : null;
+        });
     }
 }

@@ -46,11 +46,11 @@
                         </div>
                         <div>
                             <dt class="font-medium text-gray-500">Tanggal Mulai</dt>
-                            <dd class="mt-1 text-gray-900">{{ \Carbon\Carbon::parse($selectedRequest->from_date)->isoFormat('dddd, D MMMM YYYY') }}</dd>
+                            <dd class="mt-1 text-gray-900">{{ \Carbon\Carbon::parse($selectedRequest->from_date)->isoFormat('dddd, D MMMM YYYY, HH:mm') }}</dd>
                         </div>
                         <div>
                             <dt class="font-medium text-gray-500">Tanggal Selesai</dt>
-                            <dd class="mt-1 text-gray-900">{{ \Carbon\Carbon::parse($selectedRequest->to_date)->isoFormat('dddd, D MMMM YYYY') }}</dd>
+                            <dd class="mt-1 text-gray-900">{{ \Carbon\Carbon::parse($selectedRequest->to_date)->isoFormat('dddd, D MMMM YYYY, HH:mm') }}</dd>
                         </div>
                     </dl>
                 </div>
@@ -108,12 +108,13 @@
             </thead>
             <tbody>
                 @forelse ($requests as $request)
+                @if ($request)
                 <tr class="bg-white border-b hover:bg-gray-50">
                     <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                         {{ $request->destination }}
                     </th>
                     <td class="px-6 py-4">
-                        {{ \Carbon\Carbon::parse($request->from_date)->isoFormat('D MMM YYYY') }} - {{ \Carbon\Carbon::parse($request->to_date)->isoFormat('D MMM YYYY') }}
+                        {{ \Carbon\Carbon::parse($request->from_date)->isoFormat('dddd, D MMMM YYYY, HH:mm') }} - {{ \Carbon\Carbon::parse($request->to_date)->isoFormat('dddd, D MMMM YYYY, HH:mm') }}
                     </td>
                     <td class="px-6 py-4">
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
@@ -128,16 +129,19 @@
                         {{ $request->approver->name ?? '-' }}
                     </td>
                     <td class="px-6 py-4 text-right">
-                        <button wire:click="viewDetail({{ $request->id }})" class="font-medium text-blue-600 hover:underline">Lihat Detail</button>
+                        <div class="inline-flex rounded-md shadow-sm" role="group">
+                        <button wire:click="viewDetail({{ $request->id }})" class="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-gray-600 border border-gray-600 rounded-lg hover:bg-gray-700 focus:z-10 focus:ring-2 focus:ring-gray-500">Detail</button>
                         @if($request->status->name === 'Pending')
                         <form action="{{ route('requests.cancel', $request) }}" method="POST" class="inline-block ml-4">
                             @csrf
                             @method('PATCH')
-                            <button type="submit" class="font-medium text-red-600 hover:underline">Batalkan</button>
+                            <button type="submit" class="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-red-600 border border-red-600 rounded-lg hover:bg-red-700 focus:z-10 focus:ring-2 focus:ring-red-500">Batalkan</button>
                         </form>
                         @endif
+                        </div>
                     </td>
                 </tr>
+                @endif
                 @empty
                 <tr>
                     <td colspan="5" class="px-6 py-4 text-center">Anda belum memiliki riwayat permintaan.</td>

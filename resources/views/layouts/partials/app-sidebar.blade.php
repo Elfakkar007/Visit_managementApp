@@ -67,6 +67,15 @@
                 </a>
             </li>
             @endrole
+             <li>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="w-full flex justify-center py-2 text-sm font-medium rounded-lg text-red-700 border border-red-700 hover:bg-red-800 hover:text-white focus:ring-4 focus:outline-none focus:ring-red-300 transition-colors duration-150 dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900">
+                        <span class="tracking-widest whitespace-nowrap">Log Out</span>
+                    </button>
+
+                </form>
+            </li>
         </ul>
     </div>
 </aside>

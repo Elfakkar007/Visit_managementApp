@@ -61,7 +61,7 @@
                         <td class="p-4">{{ $requests->firstItem() + $loop->index }}</td>
                         <td class="px-6 py-4 font-semibold text-gray-900">{{ $request->user->name }}</td>
                         <td class="px-6 py-4 max-w-sm"><p class="font-normal text-gray-800 truncate">{{ $request->destination }}</p></td>
-                        <td class="px-6 py-4 hidden sm:table-cell">{{ \Carbon\Carbon::parse($request->from_date)->isoFormat('D MMM YY') }} - {{ \Carbon\Carbon::parse($request->to_date)->isoFormat('D MMM YY') }}</td>
+                        <td class="px-6 py-4 hidden sm:table-cell">{{ \Carbon\Carbon::parse($request->from_date)->isoFormat('dddd, D MMMM YYYY, HH:mm') }} - {{ \Carbon\Carbon::parse($request->to_date)->isoFormat('dddd, D MMMM YYYY, HH:mm') }}</td>
                         <td class="px-6 py-4 hidden lg:table-cell">
                             <span class="px-2.5 py-1 text-xs font-medium rounded-full {{ $statusColors[$request->status_id] ?? 'bg-gray-100 text-gray-800' }}">
                                 {{ $request->status->name ?? 'N/A' }}

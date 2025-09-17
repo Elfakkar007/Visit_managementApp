@@ -31,4 +31,10 @@ class ApprovalWorkflow extends Model
     {
         return $this->belongsTo(Level::class, 'approver_level_id');
     }
+
+    public function requesterSubsidiary()
+    {
+        // Method ini memberitahu Laravel bahwa 'requester_subsidiary_id' terhubung ke model Subsidiary
+        return $this->belongsTo(Subsidiary::class, 'requester_subsidiary_id');
+    }
 }

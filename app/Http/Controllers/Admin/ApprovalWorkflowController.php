@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ApprovalWorkflow;
 use App\Models\Level;
+use App\Models\Subsidiary; 
 use Illuminate\Http\Request;
 
 class ApprovalWorkflowController extends Controller
@@ -18,9 +19,10 @@ class ApprovalWorkflowController extends Controller
 
     public function create()
     {
-        // Ambil semua level untuk mengisi dropdown di form
+        
         $levels = Level::orderBy('name')->get();
-        return view('admin.workflows.create', compact('levels'));
+        $subsidiaries = Subsidiary::orderBy('name')->get();
+        return view('admin.workflows.create', compact('levels', 'subsidiaries'));
     }
 
     public function store(Request $request)
@@ -39,7 +41,9 @@ class ApprovalWorkflowController extends Controller
     public function edit(ApprovalWorkflow $workflow)
     {
         $levels = Level::orderBy('name')->get();
-        return view('admin.workflows.edit', compact('workflow', 'levels'));
+        $subsidiaries = Subsidiary::orderBy('name')->get();
+
+        return view('admin.workflows.edit', compact('workflow', 'levels', 'subsidiaries'));
     }
 
     public function update(Request $request, ApprovalWorkflow $workflow)

@@ -49,12 +49,13 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{visitRequest}/approve', [VisitRequestController::class, 'approve'])->name('approve')->middleware('can:approve visit requests');
         Route::patch('/{visitRequest}/reject', [VisitRequestController::class, 'reject'])->name('reject')->middleware('can:approve visit requests');
         
-        // Rute-rute ini bisa diakses oleh siapa saja yang bisa membuat request
+        Route::middleware('can:create visit requests')->group(function() {
         Route::get('/my-requests', [VisitRequestController::class, 'myRequests'])->name('my');
         Route::get('/create', [VisitRequestController::class, 'create'])->name('create');
         Route::post('/', [VisitRequestController::class, 'store'])->name('store');
         Route::get('/{visitRequest}', [VisitRequestController::class, 'show'])->name('show');
         Route::patch('/{visitRequest}/cancel', [VisitRequestController::class, 'cancel'])->name('cancel');
+        });
         
         // Rute export bisa dilindungi jika perlu
         Route::get('/export', [VisitRequestController::class, 'export'])->name('export')->middleware('can:view all visit requests');
@@ -77,8 +78,11 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/master-data', [MasterDataController::class, 'index'])->name('master-data');
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
-    Route::resource('/roles', \App\Http\Controllers\Admin\RoleController::class);
+    Route::get('/roles', function() {return view('admin.roles.index');})->name('roles.index');
+    Route::get('/roles/{role}/edit', [\App\Http\Controllers\Admin\RoleController::class, 'edit'])->name('roles.edit');
+    Route::put('/roles/{role}', [\App\Http\Controllers\Admin\RoleController::class, 'update'])->name('roles.update');
     Route::resource('/workflows', \App\Http\Controllers\Admin\ApprovalWorkflowController::class);
+    Route::get('/admin/workflows/{workflow}/edit', function ($workflow) {return view('admin.workflows.edit', ['workflowId' => $workflow]);})->name('admin.workflows.edit');
     Route::get('/activities', function () {return view('admin.activities.index');})->name('activities.index');
     Route::get('/guests/status', [GuestManagementController::class, 'status'])->name('guests.status');
     Route::get('/guests/history', [GuestManagementController::class, 'history'])->name('guests.history');

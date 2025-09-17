@@ -40,11 +40,11 @@
                 <li class="me-2" role="presentation">
                     <button wire:click="switchTab('levels')" class="inline-block p-4 border-b-2 rounded-t-lg {{ $activeTab == 'levels' ? 'border-blue-600 text-blue-600' : 'hover:text-gray-600 hover:border-gray-300' }}">Levels</button>
                 </li>
-                <li class="me-2" role="presentation">
-                    <button wire:click="switchTab('roles')" class="inline-block p-4 border-b-2 rounded-t-lg {{ $activeTab == 'roles' ? 'border-blue-600 text-blue-600' : 'hover:text-gray-600 hover:border-gray-300' }}">Roles</button>
-                </li>
                 <li role="presentation">
                     <button wire:click="switchTab('subsidiaries')" class="inline-block p-4 border-b-2 rounded-t-lg {{ $activeTab == 'subsidiaries' ? 'border-blue-600 text-blue-600' : 'hover:text-gray-600 hover:border-gray-300' }}">Subsidiaries</button>
+                </li>
+                <li role="presentation">
+                    <button wire:click="switchTab('destinations')" class="inline-block p-4 border-b-2 rounded-t-lg {{ $activeTab == 'destinations' ? 'border-blue-600 text-blue-600' : 'hover:text-gray-600 hover:border-gray-300' }}">Destinations</button>
                 </li>
             </ul>
         </div>
@@ -74,8 +74,8 @@
                             <td class="px-6 py-4">{{ $item->id }}</td>
                             <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">{{ $item->name }}</th>
                             <td class="px-6 py-4 text-right space-x-4">
-                                <button wire:click="edit({{ $item->id }})" class="font-medium text-blue-600 hover:underline">Edit</button>
-                                <button wire:click="delete({{ $item->id }})" wire:confirm="Anda yakin ingin menghapus data ini?" class="font-medium text-red-600 hover:underline">Hapus</button>
+                                <button wire:click="edit({{ $item->id }})" class="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-blue-600 border border-blue-600 rounded-lg hover:bg-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-500">Edit</button>
+                                <button wire:click="delete({{ $item->id }})" wire:confirm="Anda yakin ingin menghapus data ini?" class="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-red-600 border border-red-600 rounded-lg hover:bg-red-700 focus:z-10 focus:ring-2 focus:ring-red-500">Hapus</button>
                             </td>
                         </tr>
                         @empty

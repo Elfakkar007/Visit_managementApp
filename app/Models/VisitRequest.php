@@ -13,8 +13,8 @@ class VisitRequest extends Model
     protected $guarded = ['id'];
     protected $casts = [
         'approved_at' => 'datetime',
-        'from_date' => 'date',
-        'to_date' => 'date',
+        'from_date' => 'datetime',
+        'to_date' => 'datetime',
     ];
     public function user(): BelongsTo { return $this->belongsTo(User::class, 'user_id'); } // Pembuat Request
     public function approver(): BelongsTo { return $this->belongsTo(User::class, 'approved_by'); } // Yang Approve

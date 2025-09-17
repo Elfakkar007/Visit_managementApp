@@ -7,6 +7,7 @@ use App\Models\Department;
 use App\Models\Level;
 use App\Models\Role;
 use App\Models\Subsidiary;
+use App\Models\Destination;
 use Livewire\WithPagination;
 
 class MasterData extends Component
@@ -22,8 +23,8 @@ class MasterData extends Component
     protected $models = [
         'departments' => Department::class,
         'levels' => Level::class,
-        'roles' => Role::class,
         'subsidiaries' => Subsidiary::class,
+        'destinations' => Destination::class,
     ];
 
     public function switchTab($tab)

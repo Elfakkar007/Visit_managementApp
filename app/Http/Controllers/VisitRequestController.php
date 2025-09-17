@@ -4,153 +4,141 @@ namespace App\Http\Controllers;
 
 use App\Models\Status;
 use App\Models\VisitRequest;
+use App\Models\Destination;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Exports\VisitRequestsExport;
-use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Notification;
 
 class VisitRequestController extends Controller
 {
-    // ... (method approval, monitor, hrdApproval, myRequests, create tidak berubah) ...
-
+    /**
+     * Menampilkan halaman approval utama.
+     */
     public function approval()
     {
         $this->authorize('approve visit requests');
         return view('visit_requests.approval');
     }
 
+    /**
+     * Menampilkan halaman monitor untuk semua request.
+     */
     public function monitor()
     {
         $this->authorize('view monitor page');
         return view('visit_requests.monitor');
     }
-    
-    public function hrdApproval()
-    {
-        $this->authorize('view monitor page');
-        return view('visit_requests.hrd-approval');
-    }
-    
+
+    /**
+     * Menampilkan halaman "Request Saya".
+     */
     public function myRequests()
     {
         $this->authorize('create visit requests');
         return view('visit_requests.my_requests');
     }
 
+    /**
+     * Menampilkan form untuk membuat request baru.
+     */
     public function create()
     {
         $this->authorize('create visit requests');
-        return view('visit_requests.create');
+        $destinations = Destination::orderBy('name')->get(); 
+        return view('visit_requests.create', compact('destinations')); 
     }
 
-    // Logika untuk menyimpan request baru dari form
+    /**
+     * Menyimpan request baru ke database.
+     */
     public function store(Request $request)
     {
-        $this->authorize('create visit requests');
-        
-        $request->validate([
-            'destination' => 'required|string|max:255',
-            'purpose' => 'required|string',
-            'from_date' => 'required|date|after_or_equal:today',
-            'to_date' => 'required|date|after_or_equal:from_date',
+         $this->authorize('create visit requests');
+    
+        $validated = $request->validate([
+            'destination_option' => 'required|string',
+            'destination_custom' => 'required_if:destination_option,other|nullable|string|max:255',
+            'purpose'     => 'required|string',
+            'from_date'   => 'required|date',
+            'to_date'     => 'required|date|after_or_equal:from_date',
         ]);
 
         $pendingStatus = Status::where('name', 'Pending')->firstOrFail();
         
-        // --- DIUBAH: Simpan hasil create ke dalam variabel ---
+        // Logika untuk menentukan tujuan final
+        $finalDestination = $validated['destination_option'] === 'other' 
+            ? $validated['destination_custom'] 
+            : $validated['destination_option'];
+
         $visitRequest = VisitRequest::create([
-            'user_id' => Auth::id(),
-            'destination' => $request->destination,
-            'purpose' => $request->purpose,
-            'from_date' => $request->from_date,
-            'to_date' => $request->to_date,
-            'status_id' => $pendingStatus->id,
+            'user_id'     => Auth::id(),
+            'status_id'   => $pendingStatus->id,
+            'destination' => $finalDestination, // Simpan tujuan final
+            'purpose'     => $validated['purpose'],
+            'from_date'   => $validated['from_date'],
+            'to_date'     => $validated['to_date'],
         ]);
 
-        // --- Blok untuk mengirim notifikasi ke approver ---
-        $requester = Auth::user();
-        $approvers = $requester->getApprovers();
-
+        // Kirim notifikasi ke approver yang relevan
+        $approvers = Auth::user()->getApprovers();
         if ($approvers->isNotEmpty()) {
-            // Kode ini sekarang akan berjalan dengan benar karena $visitRequest sudah ada
             Notification::send($approvers, new \App\Notifications\NewVisitRequest($visitRequest));
         }
-        // -----------------------------------------------------------------
 
         return redirect()->route('requests.my')->with('success', 'Permintaan kunjungan berhasil diajukan.');
     }
 
-    // ... (method show, approve, reject, cancel, export tidak berubah) ...
-    
-    public function show(VisitRequest $visitRequest)
+    /**
+     * Menyetujui sebuah request.
+     */
+    public function approve(VisitRequest $visitRequest)
     {
-        $this->authorize('view', $visitRequest);
-        return view('visit_requests.show', compact('visitRequest'));
-    }
-
-   public function approve(VisitRequest $visitRequest)
-{
-    Log::info('Memulai proses approve untuk request ID: ' . $visitRequest->id);
-
-    $this->authorize('approve', $visitRequest);
-
-    $approvedStatus = Status::where('name', 'Approved')->firstOrFail();
-    $visitRequest->update([
-        'status_id' => $approvedStatus->id,
-        'approved_by' => Auth::id(),
-        'approved_at' => now(),
-        'rejection_reason' => null
-    ]);
-    Log::info('Status request ID: ' . $visitRequest->id . ' berhasil diupdate di database.');
-
-    $visitRequest->refresh();
-    Log::info('Model untuk request ID: ' . $visitRequest->id . ' telah di-refresh.');
-
-    $requester = $visitRequest->user;
-    if ($requester) {
-        Log::info('Requester ditemukan: ' . $requester->email . '. Mencoba mengirim notifikasi...');
-        $requester->notify(new \App\Notifications\VisitRequestStatusUpdated($visitRequest));
-        Log::info('Perintah notifikasi untuk requester ' . $requester->email . ' TELAH DIJALANKAN.');
-    } else {
-        Log::info('!!! ERROR: Requester tidak ditemukan untuk request ID: ' . $visitRequest->id);
-    }
-
-    return redirect()->route('requests.approval')->with('success', 'Permintaan berhasil disetujui.');
-}
-
-    public function reject(Request $request, VisitRequest $visitRequest)
-    {
-        Log::info('Memulai proses reject untuk request ID: ' . $visitRequest->id);
         $this->authorize('approve', $visitRequest);
 
-        $request->validate(['rejection_reason' => 'nullable|string|max:500']);
+        $approvedStatus = Status::where('name', 'Approved')->firstOrFail();
+        
+        $visitRequest->update([
+            'status_id'        => $approvedStatus->id,
+            'approved_by'      => Auth::id(),
+            'approved_at'      => now(),
+            'rejection_reason' => null // Pastikan alasan penolakan dibersihkan jika ada
+        ]);
+
+        // Kirim notifikasi ke pembuat request
+        $this->sendUpdateNotification($visitRequest);
+
+        return redirect()->back()->with('success', 'Permintaan berhasil disetujui.');
+    }
+
+    /**
+     * Menolak sebuah request.
+     */
+    public function reject(Request $request, VisitRequest $visitRequest)
+    {
+        $this->authorize('approve', $visitRequest);
+        
+        $validated = $request->validate([
+            'rejection_reason' => 'nullable|string|max:500'
+        ]);
+        
         $rejectedStatus = Status::where('name', 'Rejected')->firstOrFail();
 
         $visitRequest->update([
-            'status_id' => $rejectedStatus->id, 
-            'approved_by' => null, 
-            'approved_at' => null, 
-            'rejection_reason' => $request->rejection_reason 
+            'status_id'        => $rejectedStatus->id, 
+            'approved_by'      => Auth::id(), // DIUBAH: Catat siapa yang menolak
+            'approved_at'      => now(),      // DIUBAH: Catat kapan ditolak
+            'rejection_reason' => $validated['rejection_reason']
         ]);
 
-        Log::info('Status request ID: ' . $visitRequest->id . ' berhasil diupdate di database.');
+        // Kirim notifikasi ke pembuat request
+        $this->sendUpdateNotification($visitRequest);
 
-         $visitRequest->refresh();
-
-          Log::info('Model untuk request ID: ' . $visitRequest->id . ' telah di-refresh.');
-       $requester = $visitRequest->user;
-    if ($requester) {
-        Log::info('Requester ditemukan: ' . $requester->email . '. Mencoba mengirim notifikasi...');
-        $requester->notify(new \App\Notifications\VisitRequestStatusUpdated($visitRequest));
-        Log::info('Perintah notifikasi untuk requester ' . $requester->email . ' TELAH DIJALANKAN.');
-    } else {
-        Log::info('!!! ERROR: Requester tidak ditemukan untuk request ID: ' . $visitRequest->id);
+        return redirect()->back()->with('success', 'Permintaan telah ditolak.');
     }
 
-        return redirect()->route('requests.approval')->with('success', 'Permintaan telah ditolak.');
-    }
-
+    /**
+     * Membatalkan sebuah request.
+     */
     public function cancel(VisitRequest $visitRequest)
     {
         $this->authorize('cancel', $visitRequest);
@@ -165,12 +153,18 @@ class VisitRequestController extends Controller
         return redirect()->route('requests.my')->with('success', 'Permintaan berhasil dibatalkan.');
     }
     
-    public function export(Request $request)
+    /**
+     * Method private untuk mengirim notifikasi status update ke requester.
+     */
+    private function sendUpdateNotification(VisitRequest $visitRequest)
     {
-        $this->authorize('view all visit requests');
+        // Refresh model untuk mendapatkan data terbarunya, termasuk relasi user
+        $visitRequest->refresh();
+        
+        $requester = $visitRequest->user;
 
-        $filters = $request->all();
-        $fileName = 'visit_requests_' . date('Y-m-d') . '.xlsx';
-        return Excel::download(new VisitRequestsExport($filters), $fileName);
+        if ($requester) {
+            $requester->notify(new \App\Notifications\VisitRequestStatusUpdated($visitRequest));
+        }
     }
 }

@@ -31,11 +31,11 @@
         </div>
         <div>
             <dt class="font-medium text-gray-500">Tanggal Mulai</dt>
-            <dd class="mt-1 text-gray-900">{{ \Carbon\Carbon::parse($request->from_date)->isoFormat('dddd, D MMMM YYYY') }}</dd>
+            <dd class="mt-1 text-gray-900">{{ \Carbon\Carbon::parse($request->from_date)->isoFormat('dddd, D MMMM YYYY, HH:mm') }}</dd>
         </div>
         <div>
             <dt class="font-medium text-gray-500">Tanggal Selesai</dt>
-            <dd class="mt-1 text-gray-900">{{ \Carbon\Carbon::parse($request->to_date)->isoFormat('dddd, D MMMM YYYY') }}</dd>
+            <dd class="mt-1 text-gray-900">{{ \Carbon\Carbon::parse($request->to_date)->isoFormat('dddd, D MMMM YYYY, HH:mm') }}</dd>
         </div>
     </dl>
 </div>

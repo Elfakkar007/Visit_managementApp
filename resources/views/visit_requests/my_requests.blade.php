@@ -5,9 +5,7 @@
 
 <x-dynamic-component :component="$layout">
     <x-slot name="header">
-        {{-- ========================================================== --}}
-        {{-- BAGIAN HEADER YANG DIBUAT RESPONSIVE --}}
-        {{-- ========================================================== --}}
+
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h2 class="text-2xl font-bold text-gray-800">
