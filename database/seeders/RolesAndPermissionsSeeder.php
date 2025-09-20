@@ -8,82 +8,40 @@ use Spatie\Permission\Models\Permission;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // Reset cached roles and permissions
+        // Reset cache
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // ------------------------------------------------------------------------------------
-        // BAGIAN 1: Buat semua izin (Permissions)
-        // ------------------------------------------------------------------------------------
-        
+        // --- 1. DEFINISI SEMUA IZIN (Permissions) ---
         $permissions = [
-            // Izin Manajemen User
-            'view users',
-            'create users',
-            'edit users',
-            'delete users',
-
-            // Izin Manajemen Master Data
+            'view users', 'create users', 'edit users', 'delete users',
             'manage master data',
-
-            // Izin Visit Request
-            'create visit requests',
-            'view own visit requests',
-            'view department visit requests',
-            'view all visit requests',
-            'approve visit requests',
-            'view monitor page', // Khusus HRD
-            'view approval history',
-
-            // Izin Resepsionis
-            'use scanner',
-            'view guest history',
-            'check-in guests',
+            'create visit requests',      // Kemampuan untuk MEMBUAT request
+            'approve visit requests',     // Kemampuan untuk APPROVE request
+            'view monitor page',        // Kemampuan untuk MEMANTAU semua request
+            'use scanner', 'view guest history',
         ];
-
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission]);
         }
-        
-        // ------------------------------------------------------------------------------------
-        // BAGIAN 2 & 3: Buat Peran (Roles) dan berikan izin
-        // ------------------------------------------------------------------------------------
 
-        // Role Staff -> Hanya bisa membuat request untuk dirinya sendiri
-        $staffRole = Role::firstOrCreate(['name' => 'Staff']);
-        $staffRole->givePermissionTo([
-            'create visit requests',
-            'view own visit requests',
-        ]);
-        
-        // Role Approver -> Bisa membuat request + approve request bawahannya
-        $approverRole = Role::firstOrCreate(['name' => 'Approver']);
-        $approverRole->givePermissionTo([
-            'view department visit requests',
-            'approve visit requests',
-        ]);
+        // --- 2. BUAT PERAN BERBASIS KEMAMPUAN (Capability-Based Roles) ---
 
-        // Role Resepsionis -> Semua yang berhubungan dengan tamu
-        $receptionistRole = Role::firstOrCreate(['name' => 'Resepsionis']);
-        $receptionistRole->givePermissionTo([
-            'use scanner',
-            'view guest history',
-            'check-in guests',
-        ]);
-        
-        // Role HRD -> Punya akses spesial untuk memantau
-        $hrdRole = Role::firstOrCreate(['name' => 'HRD']);
-        $hrdRole->givePermissionTo([
-            'view all visit requests',
-            'view monitor page',
-        ]);
+        // Role 'Staff': Hanya bisa membuat request
+        Role::firstOrCreate(['name' => 'Staff'])->syncPermissions(['create visit requests']);
 
-        // Role Admin -> Bisa melakukan segalanya
+        // Role 'Approver': Hanya bisa melakukan approval
+        Role::firstOrCreate(['name' => 'Approver'])->syncPermissions(['approve visit requests']);
+
+        // Role 'HRD': Hanya bisa memantau semua request
+        Role::firstOrCreate(['name' => 'HRD'])->syncPermissions(['view monitor page']);
+
+        // Role 'Resepsionis': Terkait manajemen tamu
+        Role::firstOrCreate(['name' => 'Resepsionis'])->syncPermissions(['use scanner', 'view guest history']);
+
+        // Role 'Admin': Bisa segalanya
         $adminRole = Role::firstOrCreate(['name' => 'Admin']);
-        $adminRole->givePermissionTo(Permission::all());
+        $adminRole->givePermissionTo(Permission::all()); // Beri semua izin yang ada
     }
 }

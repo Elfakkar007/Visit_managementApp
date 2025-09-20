@@ -14,7 +14,6 @@ class DatabaseSeeder extends Seeder
             LevelSeeder::class,
             StatusSeeder::class,
             RolesAndPermissionsSeeder::class,
-            ApprovalWorkflowSeeder::class, 
 
         ]);
         $this->call(UserSeeder::class);

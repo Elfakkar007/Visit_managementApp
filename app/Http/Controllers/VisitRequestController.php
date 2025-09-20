@@ -8,6 +8,7 @@ use App\Models\Destination;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
+use App\Jobs\SendVisitRequestNotification;
 
 class VisitRequestController extends Controller
 {
@@ -82,7 +83,7 @@ class VisitRequestController extends Controller
         // Kirim notifikasi ke approver yang relevan
         $approvers = Auth::user()->getApprovers();
         if ($approvers->isNotEmpty()) {
-            Notification::send($approvers, new \App\Notifications\NewVisitRequest($visitRequest));
+             SendVisitRequestNotification::dispatch($approvers, new \App\Notifications\NewVisitRequest($visitRequest));
         }
 
         return redirect()->route('requests.my')->with('success', 'Permintaan kunjungan berhasil diajukan.');
@@ -164,7 +165,7 @@ class VisitRequestController extends Controller
         $requester = $visitRequest->user;
 
         if ($requester) {
-            $requester->notify(new \App\Notifications\VisitRequestStatusUpdated($visitRequest));
+            SendVisitRequestNotification::dispatch($requester, new \App\Notifications\VisitRequestStatusUpdated($visitRequest));
         }
     }
 }

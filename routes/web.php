@@ -81,8 +81,7 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/roles', function() {return view('admin.roles.index');})->name('roles.index');
     Route::get('/roles/{role}/edit', [\App\Http\Controllers\Admin\RoleController::class, 'edit'])->name('roles.edit');
     Route::put('/roles/{role}', [\App\Http\Controllers\Admin\RoleController::class, 'update'])->name('roles.update');
-    Route::resource('/workflows', \App\Http\Controllers\Admin\ApprovalWorkflowController::class);
-    Route::get('/admin/workflows/{workflow}/edit', function ($workflow) {return view('admin.workflows.edit', ['workflowId' => $workflow]);})->name('admin.workflows.edit');
+    Route::get('/workflows', function() {return view('admin.workflows.index');})->name('workflows.index');
     Route::get('/activities', function () {return view('admin.activities.index');})->name('activities.index');
     Route::get('/guests/status', [GuestManagementController::class, 'status'])->name('guests.status');
     Route::get('/guests/history', [GuestManagementController::class, 'history'])->name('guests.history');

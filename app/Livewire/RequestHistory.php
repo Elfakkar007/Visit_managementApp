@@ -7,8 +7,8 @@ use App\Models\User;
 use App\Models\VisitRequest;
 use App\Models\Department;
 use App\Models\Subsidiary;
-use App\Models\ApprovalWorkflow;
-use App\Models\Level;
+use App\Models\ApprovalWorkflowCondition;
+use App\Models\ApprovalWorkflowStep;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -85,14 +85,14 @@ class RequestHistory extends Component
         $this->reset(['showDetailModal', 'selectedRequest', 'approverNote']);
     }
 
-     private function buildQuery()
+    private function buildQuery()
     {
         $query = VisitRequest::query()->with(['user.profile.department', 'user.profile.subsidiary', 'status', 'approver']);
         $user = Auth::user();
 
         switch ($this->mode) {
             case 'my_requests':
-                $query->where('user_id', '>', 0); // Placeholder to start query
+                $query->where('user_id', Auth::id()); // Diperbaiki agar hanya menampilkan request milik user
                 break;
 
             case 'approval':
@@ -109,57 +109,18 @@ class RequestHistory extends Component
         return $query->latest('created_at');
     }
 
+   
+  
     private function applyApprovalLogic(Builder $query, User $approver)
     {
-        $approverProfile = $approver->profile;
-        if (!$approverProfile?->level_id) {
-            return $query->whereRaw('1 = 0');
-        }
+        $requestIds = app(\App\Services\WorkflowService::class)->getRequestIdsFor($approver);
 
-        $applicableRules = ApprovalWorkflow::where('approver_level_id', $approverProfile->level_id)->get();
-
-        if ($applicableRules->isEmpty()) {
-            return $query->whereRaw('1 = 0');
-        }
-
-        $query->where(function (Builder $subQuery) use ($applicableRules, $approverProfile) {
-            foreach ($applicableRules as $rule) {
-                $subQuery->orWhere(function (Builder $clause) use ($rule, $approverProfile) {
-                    
-                    $clause->whereHas('user.profile', function (Builder $profileQuery) use ($rule) {
-                        // Kondisi 1: Level requester harus cocok
-                        $profileQuery->where('level_id', $rule->requester_level_id);
-
-                        // KONDISI BARU 2: Jika aturan punya kondisi subsidiary, terapkan
-                        if ($rule->requester_subsidiary_id) {
-                            $profileQuery->where('subsidiary_id', $rule->requester_subsidiary_id);
-                        }
-                    });
-
-                    // Terapkan SCOPE seperti biasa
-                    switch ($rule->scope) {
-                        case 'department':
-                            $clause->whereHas('user.profile', function (Builder $p) use ($approverProfile) {
-                                $p->where('department_id', $approverProfile->department_id)
-                                ->where('subsidiary_id', $approverProfile->subsidiary_id);
-                            });
-                            break;
-                        case 'subsidiary':
-                            $clause->whereHas('user.profile', fn(Builder $p) => $p->where('subsidiary_id', $approverProfile->subsidiary_id));
-                            break;
-                        case 'cross_subsidiary':
-                            // Tidak ada filter tambahan
-                            break;
-                    }
-                });
-            }
-        });
-
-        if (! $approver->can('view approval history')) {
-            $query->whereHas('status', fn($q) => $q->where('name', 'Pending'));
+        if (empty($requestIds)) {
+            $query->whereRaw('1 = 0'); // Trik agar tidak menampilkan apa-apa
+        } else {
+            $query->whereIn('id', $requestIds);
         }
     }
-
 
     private function applyUiFilters(Builder $query)
     {
@@ -194,4 +155,3 @@ class RequestHistory extends Component
         ]);
     }
 }
-
