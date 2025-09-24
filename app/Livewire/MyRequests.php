@@ -27,8 +27,8 @@ class MyRequests extends Component
             return;
         }
 
-        $cancelledStatus = Status::where('name', 'Cancelled')->firstOrFail();
-        $visitRequest->update(['status_id' => $cancelledStatus->id]);
+        $cancelledStatusId = Status::getIdByName('Cancelled');
+        $visitRequest->update(['status_id' => $cancelledStatusId]);
 
         $this->dispatch('show-toast', type: 'success', message: 'Permintaan berhasil dibatalkan.');
     }

@@ -7,7 +7,6 @@ use App\Models\VisitRequest;
 use App\Models\Destination;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Notification;
 use App\Jobs\SendVisitRequestNotification;
 
 class VisitRequestController extends Controller
@@ -54,7 +53,7 @@ class VisitRequestController extends Controller
      */
     public function store(Request $request)
     {
-         $this->authorize('create visit requests');
+        $this->authorize('create visit requests');
     
         $validated = $request->validate([
             'destination_option' => 'required|string',
@@ -64,7 +63,7 @@ class VisitRequestController extends Controller
             'to_date'     => 'required|date|after_or_equal:from_date',
         ]);
 
-        $pendingStatus = Status::where('name', 'Pending')->firstOrFail();
+       $pendingStatusId = Status::getIdByName('Pending');
         
         $finalDestination = $validated['destination_option'] === 'other' 
             ? $validated['destination_custom'] 
@@ -72,7 +71,7 @@ class VisitRequestController extends Controller
 
         $visitRequest = VisitRequest::create([
             'user_id'     => Auth::id(),
-            'status_id'   => $pendingStatus->id,
+            'status_id'   => $pendingStatusId,
             'destination' => $finalDestination,
             'purpose'     => $validated['purpose'],
             'from_date'   => $validated['from_date'],
@@ -84,90 +83,11 @@ class VisitRequestController extends Controller
             SendVisitRequestNotification::dispatch($approvers, new \App\Notifications\NewVisitRequest($visitRequest));
         }
 
-        // Ganti session menjadi dispatch toast
-        return redirect()->route('requests.my')->with('toast', [
+        return redirect()->route('requests.my')->with('show-toast', [
             'type' => 'success',
             'message' => 'Permintaan kunjungan berhasil diajukan.'
         ]);
     }
 
-    /**
-     * Menyetujui sebuah request.
-     */
-    public function approve(VisitRequest $visitRequest)
-    {
-        $this->authorize('approve', $visitRequest);
-
-        $approvedStatus = Status::where('name', 'Approved')->firstOrFail();
-        
-        $visitRequest->update([
-            'status_id'        => $approvedStatus->id,
-            'approved_by'      => Auth::id(),
-            'approved_at'      => now(),
-            'rejection_reason' => null // Pastikan alasan penolakan dibersihkan jika ada
-        ]);
-
-        // Kirim notifikasi ke pembuat request
-        $this->sendUpdateNotification($visitRequest);
-
-        return redirect()->back()->with('success', 'Permintaan berhasil disetujui.');
-    }
-
-    /**
-     * Menolak sebuah request.
-     */
-    public function reject(Request $request, VisitRequest $visitRequest)
-    {
-        $this->authorize('approve', $visitRequest);
-        
-        $validated = $request->validate([
-            'rejection_reason' => 'nullable|string|max:500'
-        ]);
-        
-        $rejectedStatus = Status::where('name', 'Rejected')->firstOrFail();
-
-        $visitRequest->update([
-            'status_id'        => $rejectedStatus->id, 
-            'approved_by'      => Auth::id(), // DIUBAH: Catat siapa yang menolak
-            'approved_at'      => now(),      // DIUBAH: Catat kapan ditolak
-            'rejection_reason' => $validated['rejection_reason']
-        ]);
-
-        // Kirim notifikasi ke pembuat request
-        $this->sendUpdateNotification($visitRequest);
-
-        return redirect()->back()->with('success', 'Permintaan telah ditolak.');
-    }
-
-    /**
-     * Membatalkan sebuah request.
-     */
-    public function cancel(VisitRequest $visitRequest)
-    {
-        $this->authorize('cancel', $visitRequest);
-
-        if ($visitRequest->status->name !== 'Pending') {
-            return back()->with('error', 'Hanya permintaan yang sedang pending yang bisa dibatalkan.');
-        }
-
-        $cancelledStatus = Status::where('name', 'Cancelled')->firstOrFail();
-        $visitRequest->update(['status_id' => $cancelledStatus->id]);
-
-        return redirect()->route('requests.my')->with('success', 'Permintaan berhasil dibatalkan.');
-    }
-    
-    /**
-     * Method private untuk mengirim notifikasi status update ke requester.
-     */
-    private function sendUpdateNotification(VisitRequest $visitRequest)
-    {
-        // Refresh model untuk mendapatkan data terbarunya, termasuk relasi user
-        $visitRequest->refresh();
-        
-        $requester = $visitRequest->user;
-
-        if ($requester) {
-            SendVisitRequestNotification::dispatch($requester, new \App\Notifications\VisitRequestStatusUpdated($visitRequest));
-        }
-    }
+    // METHOD approve(), reject(), cancel(), dan sendUpdateNotification() DIHAPUS DARI SINI
 }

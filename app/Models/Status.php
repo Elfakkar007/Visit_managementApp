@@ -10,14 +10,26 @@ class Status extends Model
 {
     use HasFactory;
 
-    // Untuk memastikan Laravel tidak menganggap nama tabelnya 'statuses'
     protected $table = 'statuses';
     
     protected $guarded = ['id'];
 
-    // Satu status bisa dimiliki oleh banyak request kunjungan
     public function visitRequests(): HasMany
     {
         return $this->hasMany(VisitRequest::class);
+    }
+
+    /**
+     * Scope baru untuk mengambil ID status berdasarkan namanya.
+     * Ini membuat kode lebih bersih dan dinamis.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param string $name
+     * @return int
+     */
+    public function scopeGetIdByName($query, $name)
+    {
+        // Cari status berdasarkan nama, jika tidak ada akan error (fail), lalu ambil ID-nya.
+        return $query->where('name', $name)->firstOrFail()->id;
     }
 }

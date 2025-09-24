@@ -58,9 +58,9 @@ class RequestHistory extends Component
             $this->dispatch('show-toast', type: 'success', message: 'Disetujui. Diteruskan ke approver selanjutnya.');
 
         } else {
-            $approvedStatus = Status::where('name', 'Approved')->firstOrFail();
+            $approvedStatusId = Status::getIdByName('Approved');
             $visitRequest->update([
-                'status_id' => $approvedStatus->id,
+                'status_id' => $approvedStatusId,
                 'approved_by' => Auth::id(),
                 'approved_at' => now(),
                 'approver_note' => $this->approverNote ?: null
@@ -79,9 +79,9 @@ class RequestHistory extends Component
         $visitRequest = VisitRequest::findOrFail($requestId);
         $this->authorize('approve', $visitRequest);
         
-        $rejectedStatus = Status::where('name', 'Rejected')->firstOrFail();
+        $rejectedStatusId = Status::getIdByName('Rejected');
         $visitRequest->update([
-            'status_id' => $rejectedStatus->id,
+            'status_id' => $rejectedStatusId,
             'approved_by' => Auth::id(),
             'approved_at' => now(),
             'approver_note' => $this->approverNote ?: __('request.rejection_note_default')
