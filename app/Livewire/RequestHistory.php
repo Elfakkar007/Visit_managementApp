@@ -54,9 +54,10 @@ class RequestHistory extends Component
             if ($nextApprovers->isNotEmpty()) {
                 // Dispatch job notifikasi
             }
-
-            $this->dispatch('show-toast', type: 'success', message: 'Disetujui. Diteruskan ke approver selanjutnya.');
-
+            $this->dispatch('show-toast', [
+                            'type' => 'success',
+                            'message' => 'Disetujui. Diteruskan ke approver selanjutnya.'
+                        ]);
         } else {
             $approvedStatusId = Status::getIdByName('Approved');
             $visitRequest->update([
@@ -67,7 +68,10 @@ class RequestHistory extends Component
             ]);
 
             $visitRequest->user->notify(new \App\Notifications\VisitRequestStatusUpdated($visitRequest));
-            $this->dispatch('show-toast', type: 'success', message: 'Permintaan berhasil disetujui sepenuhnya.');
+           $this->dispatch('show-toast', [
+                'type' => 'success',
+                'message' => 'Permintaan berhasil disetujui sepenuhnya.'
+            ]);
         }
         
         $this->closeModal();
@@ -88,7 +92,10 @@ class RequestHistory extends Component
         ]);
         
         $visitRequest->user->notify(new \App\Notifications\VisitRequestStatusUpdated($visitRequest));
-        $this->dispatch('show-toast', type: 'error', message: 'Permintaan telah ditolak.');
+        $this->dispatch('show-toast', [
+            'type' => 'error',
+            'message' => 'Permintaan telah ditolak.'
+        ]);
         $this->closeModal();
     }
     public function closeModal()

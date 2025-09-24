@@ -114,7 +114,11 @@ class Users extends Component
         $user->syncPermissions($this->assigned_direct_permissions);
 
         $this->closeModal();
-        $this->dispatch('show-toast', type: 'success', message: $this->editingId ? 'Pengguna berhasil diperbarui.' : 'Pengguna berhasil ditambahkan.');
+        $this->dispatch('show-toast', [
+            'type' => 'success',
+            'message' => $this->editingId ? 'Pengguna berhasil diperbarui.' : 'Pengguna berhasil ditambahkan.'
+        ]);
+        
     }
 
 
@@ -136,8 +140,11 @@ class Users extends Component
         // Langsung lakukan soft delete tanpa pengecekan.
         // Fitur SoftDeletes di model User akan menangani ini secara otomatis.
         $this->userToDelete->delete(); 
-        
-        $this->dispatch('show-toast', type: 'success', message: 'Pengguna berhasil dihapus.');
+        $this->dispatch('show-toast', [
+            'type' => 'success',
+            'message' => 'Pengguna berhasil dihapus.'
+        ]);
+
         
         $this->closeModal();
     }

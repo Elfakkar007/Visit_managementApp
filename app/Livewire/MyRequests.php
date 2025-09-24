@@ -23,14 +23,19 @@ class MyRequests extends Component
         $this->authorize('cancel', $visitRequest);
 
         if ($visitRequest->status->name !== 'Pending') {
-            $this->dispatch('show-toast', type: 'error', message: 'Hanya permintaan yang pending yang bisa dibatalkan.');
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => 'Hanya permintaan yang pending yang bisa dibatalkan.'
+            ]);
             return;
         }
 
         $cancelledStatusId = Status::getIdByName('Cancelled');
         $visitRequest->update(['status_id' => $cancelledStatusId]);
-
-        $this->dispatch('show-toast', type: 'success', message: 'Permintaan berhasil dibatalkan.');
+        $this->dispatch('show-toast', [
+                    'type' => 'success',
+                    'message' => 'Permintaan berhasil dibatalkan.'
+        ]);
     }
 
     public function viewDetail($requestId)

@@ -64,8 +64,9 @@ class MasterData extends Component
             ['name' => $this->name]
         );
 
-        session()->flash('success', 'Data berhasil disimpan.');
-        $this->showModal = false;
+   
+        $this->showModal = false; 
+        $this->dispatch('show-toast', ['type' => 'success', 'message' => 'Data berhasil disimpan.']);
     }
 
    #[On('delete-data')]
@@ -75,9 +76,17 @@ class MasterData extends Component
         try {
             // Gunakan variabel 'requestId' yang sama di sini
             $modelClass::findOrFail($requestId)->delete();
-            $this->dispatch('show-toast', type: 'success', message: 'Data berhasil dihapus.');
+           $this->dispatch('show-toast', [
+                'type' => 'success',
+                'message' => 'Data berhasil dihapus.'
+            ]);
+
+
         } catch (\Illuminate\Database\QueryException $e) {
-            $this->dispatch('show-toast', type: 'error', message: 'Gagal! Data ini masih digunakan di tempat lain.');
+           $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => 'Gagal! Data ini masih digunakan di tempat lain.'
+            ]);
         }
     }
 

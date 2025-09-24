@@ -132,23 +132,23 @@
                                 <div class="inline-flex rounded-md shadow-sm" role="group">
                                     <button wire:click="viewDetail({{ $request->id }})" class="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-gray-600 rounded-lg hover:bg-gray-700">Detail</button>
                                     @if($request->status->name === 'Pending')
-                                        <button
-                                            type="button"
-                                            @click="$dispatch('open-confirmation-modal', {
-                                                title: 'Konfirmasi Pembatalan',
-                                                message: 'Anda yakin ingin membatalkan request ini?',
-                                                confirmText: 'Ya, Batalkan',
-                                                color: 'red',
-                                                livewireEvent: 'cancel-request',
-                                                livewireParams: [{{ $request->id }}]
-                                            })"
-                                            class="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 ml-2">
-                                            Batalkan
-                                        </button>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
+                                    <button
+                                        type="button"
+                                        @click="$dispatch('open-confirmation-modal', {
+                                            title: 'Konfirmasi Pembatalan',
+                                            message: 'Anda yakin ingin membatalkan request ini?',
+                                            confirmText: 'Ya, Batalkan',
+                                            color: 'red',
+                                            livewireEvent: 'cancel-request',
+                                            livewireParams: [{{ $request->id }}]
+                                        })"
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-red-600 rounded-r-lg hover:bg-red-700">
+                                        Batalkan
+                                    </button>
+                                @endif
+                            </div>
+                        </td>
+                    </tr>
                     @endif
                 @empty
                     <tr>

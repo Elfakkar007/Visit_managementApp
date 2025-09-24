@@ -49,7 +49,10 @@ class RolesManager extends Component
         );
 
         $this->showModal = false;
-        $this->dispatch('show-toast', type: 'success', message: 'Peran berhasil disimpan.');
+        $this->dispatch('show-toast', [
+            'type' => 'success',
+            'message' => 'Peran berhasil disimpan.'
+        ]);
     }
 
     #[On('delete-role')]
@@ -63,7 +66,10 @@ class RolesManager extends Component
         }
 
         $role->delete();
-        $this->dispatch('show-toast', type: 'success', message: 'Peran berhasil dihapus.');
+         $this->dispatch('show-toast', [
+            'type' => 'success',
+            'message' => 'Peran berhasil dihapus.'
+        ]);
     }
 
     public function render()

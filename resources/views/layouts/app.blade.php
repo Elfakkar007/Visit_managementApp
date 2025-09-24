@@ -30,9 +30,43 @@
                 </div>
             </div>
         </div>
+{{-- ... kode lainnya di dalam body ... --}}
+
         @livewireScripts
         @stack('scripts')
+
+        <!-- {{-- ====================================================== --}}
+        {{-- KODE JEMBATAN UNIVERSAL (INI YANG PALING PENTING) --}}
+        {{-- ====================================================== --}}
+        
+        {{-- Jembatan 1: Untuk pesan dari Controller (setelah redirect) --}}
+        @if (session('show-toast'))
+            @php $toast = session('show-toast'); @endphp
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    window.dispatchEvent(new CustomEvent('show-toast', { 
+                        detail: { 
+                            type: '{{ $toast['type'] }}', 
+                            message: '{{ addslashes($toast['message']) }}'
+                        }
+                    }));
+                });
+            </script>
+        @endif
+
+        {{-- Jembatan 2: Untuk semua event dari Livewire --}}
+        <script>
+            document.addEventListener('livewire:init', () => {
+                Livewire.on('show-toast', event => {
+                    window.dispatchEvent(new CustomEvent('show-toast', { detail: event }));
+                });
+            });
+        </script>
+        
+        {{-- Komponen Frontend yang Menerima Sinyal --}} -->
         <x-toast-notification />
         <x-confirmation-modal />
+        <x-loading-indicator />
+
     </body>
 </html>

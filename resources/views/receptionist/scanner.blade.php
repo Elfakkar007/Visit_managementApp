@@ -35,11 +35,18 @@
         </div>
     </div>
 
-   @push('scripts')
+ @push('scripts')
     {{-- Library untuk QR Scanner --}}
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        // Fungsi helper untuk memancarkan toast yang sudah kita standarkan
+        function dispatchToast(message, type = 'success') {
+            window.dispatchEvent(new CustomEvent('show-toast', {
+                detail: { message: message, type: type }
+            }));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
             const resultContainer = document.getElementById('scan-result');
             const modal = document.getElementById('checkInModal');
             const checkInForm = document.getElementById('checkInForm');
@@ -51,7 +58,6 @@
                 isProcessing = true;
                 
                 html5QrcodeScanner.clear();
-                resultContainer.innerHTML = `<span class="text-blue-600">Memproses kode...</span>`;
 
                 fetch(`/receptionist/get-visit-status/${decodedText}`)
                     .then(response => response.json())
@@ -59,20 +65,27 @@
                         handleScanResponse(data);
                     })
                     .catch(error => {
-                        resultContainer.innerHTML = `<span class="text-red-600">Error: ${error}</span>`;
+                        dispatchToast('Terjadi kesalahan koneksi.', 'error');
                         setTimeout(() => location.reload(), 2500);
                     });
             }
 
             function handleScanResponse(data) {
-                resultContainer.innerHTML = `<span class="text-green-600">${data.message || ''}</span>`;
+                const message = data.status === 'already_checked_out' ? 'QR Code sudah digunakan (kadaluarsa).' : data.message;
+                const type = data.status.includes('success') ? 'success' : 'error';
+                
+                // Hanya kirim toast jika ada pesan
+                if (message) {
+                    dispatchToast(message, type);
+                }
+
                 switch (data.status) {
                     case 'needs_check_in':
                         document.getElementById('modalGuestName').textContent = data.guest_name;
                         document.getElementById('modalUuid').value = data.uuid;
                         modal.style.display = 'block';
                         document.getElementById('visit_destination').focus();
-                        isProcessing = false; // Allow new interaction
+                        isProcessing = false;
                         break;
                     case 'checked_out_success':
                     case 'already_checked_out':
@@ -82,7 +95,8 @@
                 }
             }
 
-            submitCheckInBtn.addEventListener('click', function(e) {
+            // --- BAGIAN LOGIKA SUBMIT FORM YANG DIPERBAIKI ---
+            checkInForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 const formData = new FormData(checkInForm);
                 submitCheckInBtn.disabled = true;
@@ -91,24 +105,36 @@
                 fetch('{{ route("receptionist.performCheckIn") }}', {
                     method: 'POST',
                     body: formData,
-                    headers: { 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value }
+                    headers: { 
+                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                        'Accept': 'application/json' // Pastikan server tahu kita mau JSON
+                    }
                 })
-                .then(response => response.json())
+                .then(response => {
+                    // Cek dulu apakah respons server sukses (kode 2xx)
+                    if (!response.ok) {
+                        // Jika tidak, lempar error untuk ditangkap oleh .catch()
+                        return response.json().then(err => { throw err; });
+                    }
+                    return response.json();
+                })
                 .then(data => {
+                    // Ini hanya akan berjalan jika response.ok
                     if (data.status === 'check_in_success') {
                         modal.style.display = 'none';
-                        resultContainer.innerHTML = `<span class="text-green-600">${data.message}</span>`;
+                        dispatchToast(data.message, 'success'); // Gunakan toast
                         setTimeout(() => location.reload(), 2000);
-                    } else {
-                        alert('Terjadi kesalahan: ' + data.message);
-                        submitCheckInBtn.disabled = false;
-                        submitCheckInBtn.textContent = 'Submit Check-in';
                     }
+                })
+                .catch(error => {
+                    // Semua jenis error (koneksi, validasi, server error) akan ditangkap di sini
+                    dispatchToast(error.message || 'Gagal melakukan check-in.', 'error'); // Gunakan toast
+                    submitCheckInBtn.disabled = false;
+                    submitCheckInBtn.textContent = 'Submit Check-in';
                 });
             });
 
-            var html5QrcodeScanner = new Html5QrcodeScanner(
-                "qr-reader", { fps: 10, qrbox: {width: 250, height: 250} });
+            var html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: {width: 250, height: 250} });
             html5QrcodeScanner.render(onScanSuccess);
         });
     </script>

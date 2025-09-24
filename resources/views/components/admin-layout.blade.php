@@ -29,7 +29,33 @@
         </div>
         @livewireScripts
         @stack('scripts')
+
+        <!-- @if (session('show-toast'))
+            @php $toast = session('show-toast'); @endphp
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    window.dispatchEvent(new CustomEvent('show-toast', { 
+                        detail: { 
+                            type: '{{ $toast['type'] }}', 
+                            message: '{{ addslashes($toast['message']) }}'
+                        }
+                    }));
+                });
+            </script>
+        @endif
+
+        <script>
+            document.addEventListener('livewire:init', () => {
+                Livewire.on('show-toast', event => {
+                    window.dispatchEvent(new CustomEvent('show-toast', { detail: event }));
+                });
+            });
+        </script>
+         -->
+ 
         <x-toast-notification />
         <x-confirmation-modal />
+        <x-loading-indicator />
+
     </body>
-    </html>
+</html>

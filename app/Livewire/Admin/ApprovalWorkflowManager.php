@@ -150,7 +150,14 @@ class ApprovalWorkflowManager extends Component
         });
 
         $this->showModal = false;
-        $this->dispatch('show-toast', type: 'success', message: 'Alur approval berhasil disimpan.');
+       $this->dispatch('show-toast', [
+            'type' => 'success',
+            'message' => 'Alur approval berhasil disimpan.'
+        ]);
+
+
+
+
         $this->dispatch('workflowSaved');
     }
     
@@ -158,7 +165,10 @@ class ApprovalWorkflowManager extends Component
     public function delete($requestId)
     {
         ApprovalWorkflow::findOrFail($requestId)->delete();
-        $this->dispatch('show-toast', type: 'success', message: 'Alur approval berhasil dihapus.');
+        $this->dispatch('show-toast', [
+            'type' => 'success',
+            'message' => 'Alur approval berhasil dihapus.'
+        ]);
     }
 
     public function render()
