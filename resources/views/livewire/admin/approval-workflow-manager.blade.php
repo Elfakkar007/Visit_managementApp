@@ -216,7 +216,7 @@
     @endif
 
     {{-- KONTEN UTAMA HALAMAN (TABEL DAFTAR WORKFLOW) --}}
-    <div class="bg-white p-6 rounded-lg shadow-md">
+     <div class="bg-white p-6 rounded-lg shadow-md">
         <div class="flex justify-end mb-4">
             <button wire:click="create" class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">
                 + Buat Aturan Baru
@@ -245,7 +245,17 @@
                             <button wire:click="edit({{ $workflow->id }})" type="button" class="inline-flex items-center px-3 py-2 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700">
                                 Edit
                             </button>
-                            <button wire:click="delete({{ $workflow->id }})" wire:confirm="Anda yakin ingin menghapus aturan ini?" type="button" class="inline-flex items-center px-3 py-2 text-xs font-medium text-white bg-red-600 rounded-r-lg hover:bg-red-700">
+                            <button
+                                type="button"
+                                @click="$dispatch('open-confirmation-modal', {
+                                    title: 'Konfirmasi Hapus',
+                                    message: 'Anda yakin ingin menghapus aturan \'{{ $workflow->name }}\'?',
+                                    confirmText: 'Ya, Hapus',
+                                    color: 'red',
+                                    livewireEvent: 'delete-workflow',
+                                    livewireParams: [{{ $workflow->id }}]
+                                })"
+                                class="inline-flex items-center px-3 py-2 text-xs font-medium text-white bg-red-600 rounded-r-lg hover:bg-red-700">
                                 Hapus
                             </button>
                         </div>

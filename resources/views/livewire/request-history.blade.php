@@ -1,4 +1,57 @@
 <div>
+ <div class="bg-white p-4 rounded-lg shadow-sm mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+            {{-- Filter Non-Tanggal --}}
+            <div class="xl:col-span-1">
+                <label for="filterUser" class="block text-xs font-medium text-gray-600 mb-1">Pemohon</label>
+                <select wire:model.live="filterUser" id="filterUser" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    <option value="">Semua</option>
+                    @foreach($users as $user) <option value="{{ $user->id }}">{{ $user->name }}</option> @endforeach
+                </select>
+            </div>
+            <div class="xl:col-span-1">
+                <label for="filterDepartment" class="block text-xs font-medium text-gray-600 mb-1">Departemen</label>
+                <select wire:model.live="filterDepartment" id="filterDepartment" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    <option value="">Semua</option>
+                    @foreach($departments as $department) <option value="{{ $department->id }}">{{ $department->name }}</option> @endforeach
+                </select>
+            </div>
+            <div class="xl:col-span-1">
+                <label for="filterSubsidiary" class="block text-xs font-medium text-gray-600 mb-1">Subsidiary</label>
+                <select wire:model.live="filterSubsidiary" id="filterSubsidiary" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    <option value="">Semua</option>
+                    @foreach($subsidiaries as $subsidiary) <option value="{{ $subsidiary->id }}">{{ $subsidiary->name }}</option> @endforeach
+                </select>
+            </div>
+            <div class="xl:col-span-1">
+                <label for="filterStatus" class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                <select wire:model.live="filterStatus" id="filterStatus" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    <option value="">Semua</option>
+                    @foreach($all_statuses as $status) <option value="{{ $status->id }}">{{ $status->name }}</option> @endforeach
+                </select>
+            </div>
+
+            {{-- Filter Tanggal yang Baru --}}
+            <div class="xl:col-span-1">
+                <label for="filterYear" class="block text-xs font-medium text-gray-600 mb-1">Tahun</label>
+                <select wire:model.live="filterYear" id="filterYear" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    <option value="">Semua</option>
+                    @foreach($years as $year) <option value="{{ $year }}">{{ $year }}</option> @endforeach
+                </select>
+            </div>
+            <div class="xl:col-span-1">
+                <label for="filterMonth" class="block text-xs font-medium text-gray-600 mb-1">Bulan</label>
+                <select wire:model.live="filterMonth" id="filterMonth" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    <option value="">Semua</option>
+                    @foreach($months as $num => $name) <option value="{{ $num }}">{{ $name }}</option> @endforeach
+                </select>
+            </div>
+            <div class="xl:col-span-1">
+                <label for="filterDate" class="block text-xs font-medium text-gray-600 mb-1">Tanggal Spesifik</label>
+                <input wire:model.live="filterDate" id="filterDate" type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+            </div>
+        </div>
+    </div>
     {{-- MODAL DETAIL DENGAN AKSI APPROVE/REJECT --}}
     @if ($showDetailModal && $selectedRequest)
     <div class="fixed inset-0 z-50 flex justify-center items-center w-full h-full bg-black bg-opacity-50 backdrop-blur-sm">
@@ -57,9 +110,9 @@
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
                 @forelse($requests as $request)
-                    <tr class="hover:bg-gray-50">
+                    <tr wire:key="request-{{ $request->id }}" class="hover:bg-gray-50">
                         <td class="p-4">{{ $requests->firstItem() + $loop->index }}</td>
-                        <td class="px-6 py-4 font-semibold text-gray-900">{{ $request->user->name }}</td>
+                        <td class="px-6 py-4 font-semibold text-gray-900">{{ $request->user?->name ?? 'Pengguna Telah Dihapus' }}</td>
                         <td class="px-6 py-4 max-w-sm"><p class="font-normal text-gray-800 truncate">{{ $request->destination }}</p></td>
                         <td class="px-6 py-4 hidden sm:table-cell">{{ \Carbon\Carbon::parse($request->from_date)->isoFormat('dddd, D MMMM YYYY, HH:mm') }} - {{ \Carbon\Carbon::parse($request->to_date)->isoFormat('dddd, D MMMM YYYY, HH:mm') }}</td>
                         <td class="px-6 py-4 hidden lg:table-cell">
@@ -69,19 +122,33 @@
                         </td>
                         <td class="px-6 py-4">
                             <div class="inline-flex rounded-md shadow-sm" role="group">
-                                <button wire:click="viewDetail({{ $request->id }})" type="button" class="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-900 bg-gray-300 border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-dark focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700">
-                                <svg class="w-3 h-3 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 14">
-                                    <path d="M10 0C4.612 0 0 5.336 0 7c0 1.742 3.546 7 10 7 6.454 0 10-5.258 10-7 0-1.664-4.612-7-10-7Zm0 10a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z"/>
-                                </svg>
-                                Detail
-                            </button>
-                                {{-- Tombol Aksi Cepat di Tabel --}}
+                                <button wire:click="viewDetail({{ $request->id }})" type="button" class="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-900 bg-gray-300 rounded-s-lg hover:bg-gray-100">
+                                    Detail
+                                </button>
                                 @if($mode === 'approval' && $request->status->name === 'Pending')
                                     @can('approve', $request)
-                                        <button wire:click.prevent="$dispatch('confirm-action', { requestId: {{ $request->id }}, action: 'reject' })" type="button" class="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-red-600 border border-red-600 hover:bg-red-700 focus:z-10 focus:ring-2 focus:ring-red-500">
+                                        <button type="button" 
+                                            @click="$dispatch('open-confirmation-modal', {
+                                                title: 'Konfirmasi Penolakan',
+                                                message: 'Anda akan menolak permintaan ini.',
+                                                confirmText: 'Ya, Tolak',
+                                                color: 'red',
+                                                livewireEvent: 'reject-request',
+                                                livewireParams: [{{ $request->id }}]
+                                            })"
+                                            class="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-red-600 hover:bg-red-700">
                                             Tolak
                                         </button>
-                                        <button wire:click.prevent="$dispatch('confirm-action', { requestId: {{ $request->id }}, action: 'approve' })" type="button" class="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-green-600 border border-green-600 rounded-e-lg hover:bg-green-700 focus:z-10 focus:ring-2 focus:ring-green-500">
+                                        <button type="button" 
+                                            @click="$dispatch('open-confirmation-modal', {
+                                                title: 'Konfirmasi Persetujuan',
+                                                message: 'Anda akan menyetujui permintaan ini.',
+                                                confirmText: 'Ya, Setujui',
+                                                color: 'green',
+                                                livewireEvent: 'approve-request',
+                                                livewireParams: [{{ $request->id }}]
+                                            })"
+                                            class="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-green-600 rounded-e-lg hover:bg-green-700">
                                             Setujui
                                         </button>
                                     @endcan

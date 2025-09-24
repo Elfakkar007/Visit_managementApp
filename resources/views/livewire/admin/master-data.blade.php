@@ -73,22 +73,30 @@
                         <tr class="bg-white border-b hover:bg-gray-50">
                             <td class="px-6 py-4">{{ $item->id }}</td>
                             <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">{{ $item->name }}</th>
-                            <td class="px-6 py-4 text-right space-x-4">
-                                <button wire:click="edit({{ $item->id }})" class="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-blue-600 border border-blue-600 rounded-lg hover:bg-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-500">Edit</button>
-                                <button wire:click="delete({{ $item->id }})" wire:confirm="Anda yakin ingin menghapus data ini?" class="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-red-600 border border-red-600 rounded-lg hover:bg-red-700 focus:z-10 focus:ring-2 focus:ring-red-500">Hapus</button>
+                           <td class="px-6 py-4 text-right space-x-4">
+                                <button wire:click="edit({{ $item->id }})" class="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">Edit</button>
+                                <button
+                                    type="button"
+                                    @click="$dispatch('open-confirmation-modal', {
+                                        title: 'Konfirmasi Hapus',
+                                        message: 'Anda yakin ingin menghapus data \'{{ $item->name }}\'?',
+                                        confirmText: 'Ya, Hapus',
+                                        color: 'red',
+                                        livewireEvent: 'delete-data',
+                                        livewireParams: [{{ $item->id }}]
+                                    })"
+                                    class="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-red-600 rounded-lg hover:bg-red-700">
+                                    Hapus
+                                </button>
                             </td>
                         </tr>
                         @empty
-                        <tr>
-                            <td colspan="3" class="px-6 py-4 text-center">Tidak ada data ditemukan.</td>
-                        </tr>
+                        <tr><td colspan="3" class="px-6 py-4 text-center">Tidak ada data ditemukan.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
-            <div class="mt-4">
-                {{ $data->links() }}
-            </div>
+            <div class="mt-4">{{ $data->links() }}</div>
         </div>
     </div>
 </div>

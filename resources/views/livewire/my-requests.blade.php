@@ -108,49 +108,57 @@
             </thead>
             <tbody>
                 @forelse ($requests as $request)
-                @if ($request)
-                <tr class="bg-white border-b hover:bg-gray-50">
-                    <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                        {{ $request->destination }}
-                    </th>
-                    <td class="px-6 py-4">
-                        {{ \Carbon\Carbon::parse($request->from_date)->isoFormat('dddd, D MMMM YYYY, HH:mm') }} - {{ \Carbon\Carbon::parse($request->to_date)->isoFormat('dddd, D MMMM YYYY, HH:mm') }}
-                    </td>
-                    <td class="px-6 py-4">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            @if($request->status->name == 'Approved') bg-green-100 text-green-800
-                            @elseif($request->status->name == 'Rejected') bg-red-100 text-red-800
-                            @elseif($request->status->name == 'Cancelled') bg-gray-100 text-gray-800
-                            @else bg-yellow-100 text-yellow-800 @endif">
-                            {{ $request->status->name }}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4">
-                        {{ $request->approver->name ?? '-' }}
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                        <div class="inline-flex rounded-md shadow-sm" role="group">
-                        <button wire:click="viewDetail({{ $request->id }})" class="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-gray-600 border border-gray-600 rounded-lg hover:bg-gray-700 focus:z-10 focus:ring-2 focus:ring-gray-500">Detail</button>
-                        @if($request->status->name === 'Pending')
-                        <form action="{{ route('requests.cancel', $request) }}" method="POST" class="inline-block ml-4">
-                            @csrf
-                            @method('PATCH')
-                            <button type="submit" class="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-red-600 border border-red-600 rounded-lg hover:bg-red-700 focus:z-10 focus:ring-2 focus:ring-red-500">Batalkan</button>
-                        </form>
-                        @endif
-                        </div>
-                    </td>
-                </tr>
-                @endif
+                    @if ($request)
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                                {{ $request->destination }}
+                            </th>
+                            <td class="px-6 py-4">
+                                {{ \Carbon\Carbon::parse($request->from_date)->isoFormat('dddd, D MMMM YYYY, HH:mm') }} - {{ \Carbon\Carbon::parse($request->to_date)->isoFormat('dddd, D MMMM YYYY, HH:mm') }}
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    @if($request->status->name == 'Approved') bg-green-100 text-green-800
+                                    @elseif($request->status->name == 'Rejected') bg-red-100 text-red-800
+                                    @elseif($request->status->name == 'Cancelled') bg-gray-100 text-gray-800
+                                    @else bg-yellow-100 text-yellow-800 @endif">
+                                    {{ $request->status->name }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                {{ $request->approver->name ?? '-' }}
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <div class="inline-flex rounded-md shadow-sm" role="group">
+                                    <button wire:click="viewDetail({{ $request->id }})" class="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-gray-600 rounded-lg hover:bg-gray-700">Detail</button>
+                                    @if($request->status->name === 'Pending')
+                                        <button
+                                            type="button"
+                                            @click="$dispatch('open-confirmation-modal', {
+                                                title: 'Konfirmasi Pembatalan',
+                                                message: 'Anda yakin ingin membatalkan request ini?',
+                                                confirmText: 'Ya, Batalkan',
+                                                color: 'red',
+                                                livewireEvent: 'cancel-request',
+                                                livewireParams: [{{ $request->id }}]
+                                            })"
+                                            class="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 ml-2">
+                                            Batalkan
+                                        </button>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @endif
                 @empty
-                <tr>
-                    <td colspan="5" class="px-6 py-4 text-center">Anda belum memiliki riwayat permintaan.</td>
-                </tr>
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center">
+                            Anda belum memiliki riwayat permintaan.
+                        </td>
+                    </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
-    <div class="mt-4">
-        {{ $requests->links() }}
-    </div>
+    <div class="mt-4">{{ $requests->links() }}</div>
 </div>

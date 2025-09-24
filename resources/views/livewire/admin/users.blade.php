@@ -1,14 +1,6 @@
 <div>
-    @if (session()->has('success'))
-        <div class="flex items-center p-4 mb-4 text-sm text-green-800 border border-green-300 rounded-lg bg-green-50" role="alert">
-            <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20"><path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/></svg>
-            <span class="sr-only">Info</span>
-            <div><span class="font-medium">Sukses!</span> {{ session('success') }}</div>
-        </div>
-    @endif
-
-    {{-- MODAL UNTUK CREATE & EDIT DENGAN TAB --}}
-    @if($showModal)
+     {{-- MODAL UNTUK CREATE & EDIT DENGAN TAB --}}
+    @if($showEditModal) {{-- <<<--- INI BAGIAN YANG DIPERBAIKI --}}
     <div class="fixed inset-0 z-50 flex justify-center items-center w-full h-full bg-gray-900 bg-opacity-50">
         <div class="relative p-4 w-full max-w-4xl h-auto">
             <div class="relative bg-white rounded-lg shadow" x-data="{ activeTab: 'profile' }">
@@ -52,24 +44,18 @@
                                         <div class="relative">
                                             <input :type="show ? 'text' : 'password'" wire:model="password" id="password" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-10" placeholder="{{ $editingId ? 'Kosongkan jika tidak diubah' : '' }}">
                                             <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 focus:outline-none" tabindex="-1">
-                                                {{-- Ikon Mata Terbuka --}}
                                                 <svg x-show="!show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                                {{-- Ikon Mata Tercoret --}}
                                                 <svg x-show="show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display: none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.956 9.956 0 012.293-3.95M6.873 6.872A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.965 9.965 0 01-4.293 5.95M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18" /></svg>
                                             </button>
                                         </div>
                                         @error('password') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                                     </div>
-
-                                    {{-- Field Konfirmasi Password --}}
                                     <div x-data="{ show: false }">
                                         <label for="password_confirmation" class="block mb-2 text-sm font-medium text-gray-900">Konfirmasi Password</label>
                                         <div class="relative">
                                             <input :type="show ? 'text' : 'password'" wire:model="password_confirmation" id="password_confirmation" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-10">
                                             <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 focus:outline-none" tabindex="-1">
-                                                {{-- Ikon Mata Terbuka --}}
                                                 <svg x-show="!show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                                {{-- Ikon Mata Tercoret --}}
                                                 <svg x-show="show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display: none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.956 9.956 0 012.293-3.95M6.873 6.872A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.965 9.965 0 01-4.293 5.95M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18" /></svg>
                                             </button>
                                         </div>
@@ -91,6 +77,21 @@
                                         <label for="level_id" class="block mb-2 text-sm font-medium text-gray-900">Level</label>
                                         <select wire:model="level_id" id="level_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required><option value="">Pilih...</option>@foreach($levels as $l)<option value="{{ $l->id }}">{{ $l->name }}</option>@endforeach</select>
                                         @error('level_id') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                    </div>
+                                    <div>
+                                        <label class="block mb-2 text-sm font-medium text-gray-900">Peran Pengguna</label>
+                                        <p class="text-xs text-gray-500 mb-3">Pilih satu atau lebih peran yang sesuai.</p>
+                                        <div class="p-3 bg-gray-50 border border-gray-300 rounded-lg max-h-40 overflow-y-auto">
+                                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-y-2 gap-x-4">
+                                                @foreach($roles as $role)
+                                                    <div class="flex items-center">
+                                                        <input wire:model="assigned_roles" type="checkbox" value="{{ $role->name }}" id="role_{{ $role->id }}" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                                                        <label for="role_{{ $role->id }}" class="ms-2 text-sm font-medium text-gray-900">{{ $role->name }}</label>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                        @error('assigned_roles') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                                     </div>
                                 </div>
                             </div>
@@ -124,8 +125,6 @@
         </div>
     </div>
     @endif
-
-    {{-- ... sisa dari file (MODAL DETAIL & TABEL UTAMA) tidak perlu diubah ... --}}
     
     {{-- MODAL UNTUK DETAIL & AKTIVITAS --}}
     @if($showDetailModal && $detailUser)
@@ -185,6 +184,30 @@
     </div>
     @endif
 
+    @if($showDeleteModal && $userToDelete)
+    <div class="fixed inset-0 z-50 flex justify-center items-center w-full h-full bg-gray-900 bg-opacity-50">
+        <div class="relative p-4 w-full max-w-md h-auto">
+            <div class="relative bg-white rounded-lg shadow">
+                <button wire:click="closeModal" type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 14 14" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/></svg>
+                </button>
+                <div class="p-4 md:p-5 text-center">
+                    <svg class="mx-auto mb-4 text-gray-400 w-12 h-12" fill="none" viewBox="0 0 20 20" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                    <h3 class="mb-5 text-lg font-normal text-gray-500">
+                        Anda yakin ingin menghapus pengguna <br> <span class="font-bold">{{ $userToDelete->name }}</span>?
+                    </h3>
+                    <button wire:click="confirmDelete" type="button" class="text-white bg-red-600 hover:bg-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center">
+                        Ya, Hapus
+                    </button>
+                    <button wire:click="closeModal" type="button" class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100">
+                        Batal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
     {{-- KONTEN UTAMA (TABEL) --}}
     <div class="bg-white p-6 rounded-lg shadow">
        <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 mb-4">
@@ -220,24 +243,26 @@
                         <th scope="col" class="px-6 py-3">Pengguna</th>
                         <th scope="col" class="px-6 py-3 hidden md:table-cell">Departemen</th>
                         <th scope="col" class="px-6 py-3 hidden lg:table-cell">Peran</th>
-                        <th scope="col" class="px-6 py-3"><span class="sr-only">Aksi</span></th>
+                        <th scope="col" class="px-6 py-3 text-right">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($users as $user)
-                    <tr class="bg-white border-b hover:bg-gray-50">
+                    <tr wire:key="user-{{ $user->id }}" class="bg-white border-b hover:bg-gray-50">
                         <td class="px-6 py-4">
                             <div class="font-medium text-gray-900">{{ $user->name }}</div>
                             <div class="text-xs text-gray-500">{{ $user->email }}</div>
-                            <div class="text-xs text-gray-500 mt-1 lg:hidden">Peran: {{ $user->getRoleNames()->implode(', ') }}</div>
                         </td>
                         <td class="px-6 py-4 hidden md:table-cell">{{ $user->profile->department->name ?? '-' }}</td>
                         <td class="px-6 py-4 hidden lg:table-cell">{{ $user->getRoleNames()->implode(', ') }}</td>
                         <td class="px-6 py-4 text-right">
+                            {{-- INI BAGIAN YANG DIPERBAIKI --}}
                             <div class="inline-flex rounded-md shadow-sm" role="group">
-                                @can('view users')<button wire:click="viewDetails({{ $user->id }})" class="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-900 bg-gray-300 border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-dark focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700">Detail</button>@endcan
-                                @can('edit users')<button wire:click="edit({{ $user->id }})" class="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-blue-600 border border-blue-600 hover:bg-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-500">Edit</button>@endcan
-                                @can('delete users')<button wire:click="delete({{ $user->id }})" wire:confirm="Anda yakin?" class="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-red-600 border border-red-600 rounded-e-lg hover:bg-red-700 focus:z-10 focus:ring-2 focus:ring-red-500">Hapus</button>@endcan
+                                <button wire:click="viewDetail({{ $user->id }})" type="button" class="inline-flex items-center px-3 py-2 text-xs font-medium text-white bg-gray-600 rounded-l-lg hover:bg-gray-700">Detail</button>
+                                <button wire:click="edit({{ $user->id }})" type="button" class="inline-flex items-center px-3 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700">Edit</button>
+                                <button wire:click="askToDelete({{ $user->id }})" type="button" class="inline-flex items-center px-3 py-2 text-xs font-medium text-white bg-red-600 rounded-r-lg hover:bg-red-700">
+                                    Hapus
+                                </button>
                             </div>
                         </td>
                     </tr>

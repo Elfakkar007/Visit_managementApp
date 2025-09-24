@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use Livewire\Component;
 use Spatie\Permission\Models\Role;
 use Livewire\WithPagination;
+use Livewire\Attributes\On;
 
 class RolesManager extends Component
 {
@@ -51,6 +52,7 @@ class RolesManager extends Component
         $this->dispatch('show-toast', type: 'success', message: 'Peran berhasil disimpan.');
     }
 
+      #[On('delete-role')]
     public function delete($id)
     {
         $role = Role::findOrFail($id);

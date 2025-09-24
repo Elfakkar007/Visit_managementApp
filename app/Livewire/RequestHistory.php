@@ -20,7 +20,7 @@ class RequestHistory extends Component
     use WithPagination;
 
     public $mode;
-    public $filterUser = '', $filterDepartment = '', $filterSubsidiary = '', $filterStatus = '', $filterDate = '';
+    public $filterUser = '', $filterDepartment = '', $filterSubsidiary = '', $filterStatus = '', $filterDate = '', $filterMonth = '',  $filterYear = '';
     
     public $showDetailModal = false;
     public $selectedRequest;
@@ -28,30 +28,51 @@ class RequestHistory extends Component
 
     public function updating($property)
     {
-        if (in_array($property, ['filterUser', 'filterDepartment', 'filterSubsidiary', 'filterStatus', 'filterDate'])) {
+        if (in_array($property, ['filterUser', 'filterDepartment', 'filterSubsidiary', 'filterStatus', 'filterDate', 'filterMonth', 'filterYear'])) {
             $this->resetPage();
         }
     }
 
-    #[On('approve-request')]
-    public function approve($requestId)
+   #[On('approve-request')]
+    public function approve($requestId) 
     {
-        $visitRequest = VisitRequest::findOrFail($requestId);
+        $visitRequest = VisitRequest::findOrFail($requestId); 
         $this->authorize('approve', $visitRequest);
 
-        $approvedStatus = Status::where('name', 'Approved')->firstOrFail();
-        $visitRequest->update([
-            'status_id' => $approvedStatus->id,
-            'approved_by' => Auth::id(),
-            'approved_at' => now(),
-            'approver_note' => $this->approverNote ?: null
-        ]);
+        $workflow = app(\App\Services\WorkflowService::class)->findBestWorkflowFor($visitRequest->user);
+        
+        $hasNextStep = false;
+        if ($workflow) {
+            $steps = $workflow->steps();
+            $hasNextStep = $steps->where('step', $visitRequest->current_step + 1)->exists();
+        }
+       
+        if ($hasNextStep) {
+            $visitRequest->increment('current_step');
+            $nextApprovers = app(\App\Services\WorkflowService::class)->findApproversFor($visitRequest);
+            $nextApprovers = app(\App\Services\WorkflowService::class)->findApproversFor($visitRequest->fresh());
+            if ($nextApprovers->isNotEmpty()) {
+                // Dispatch job notifikasi
+            }
 
-        $visitRequest->user->notify(new \App\Notifications\VisitRequestStatusUpdated($visitRequest->refresh()));
-        $this->dispatch('show-toast', type: 'success', message: 'Permintaan berhasil disetujui.');
+            $this->dispatch('show-toast', type: 'success', message: 'Disetujui. Diteruskan ke approver selanjutnya.');
+
+        } else {
+            $approvedStatus = Status::where('name', 'Approved')->firstOrFail();
+            $visitRequest->update([
+                'status_id' => $approvedStatus->id,
+                'approved_by' => Auth::id(),
+                'approved_at' => now(),
+                'approver_note' => $this->approverNote ?: null
+            ]);
+
+            $visitRequest->user->notify(new \App\Notifications\VisitRequestStatusUpdated($visitRequest));
+            $this->dispatch('show-toast', type: 'success', message: 'Permintaan berhasil disetujui sepenuhnya.');
+        }
+        
         $this->closeModal();
     }
-
+    
     #[On('reject-request')]
     public function reject($requestId)
     {
@@ -63,26 +84,25 @@ class RequestHistory extends Component
             'status_id' => $rejectedStatus->id,
             'approved_by' => Auth::id(),
             'approved_at' => now(),
-            'approver_note' => $this->approverNote ?: 'Ditolak tanpa catatan.'
+            'approver_note' => $this->approverNote ?: __('request.rejection_note_default')
         ]);
         
-        $visitRequest->user->notify(new \App\Notifications\VisitRequestStatusUpdated($visitRequest->refresh()));
+        $visitRequest->user->notify(new \App\Notifications\VisitRequestStatusUpdated($visitRequest));
         $this->dispatch('show-toast', type: 'error', message: 'Permintaan telah ditolak.');
         $this->closeModal();
     }
-    
-    public function viewDetail($requestId)
+    public function closeModal()
+    {
+        $this->reset(['showDetailModal', 'selectedRequest', 'approverNote']);
+    }
+
+     public function viewDetail($requestId)
     {
         $this->approverNote = '';
         $this->selectedRequest = VisitRequest::with(['user.profile.department', 'status', 'approver'])
             ->findOrFail($requestId);
         $this->approverNote = $this->selectedRequest->approver_note ?? '';
         $this->showDetailModal = true;
-    }
-
-    public function closeModal()
-    {
-        $this->reset(['showDetailModal', 'selectedRequest', 'approverNote']);
     }
 
     private function buildQuery()
@@ -116,6 +136,7 @@ class RequestHistory extends Component
         $requestIds = app(\App\Services\WorkflowService::class)->getRequestIdsFor($approver);
 
         if (empty($requestIds)) {
+            // Use a false condition to ensure no results are returned when there are no request IDs
             $query->whereRaw('1 = 0'); // Trik agar tidak menampilkan apa-apa
         } else {
             $query->whereIn('id', $requestIds);
@@ -128,12 +149,26 @@ class RequestHistory extends Component
         $query->when($this->filterDepartment, fn($q) => $q->whereHas('user.profile', fn($subq) => $subq->where('department_id', $this->filterDepartment)));
         $query->when($this->filterSubsidiary, fn($q) => $q->whereHas('user.profile', fn($subq) => $subq->where('subsidiary_id', $this->filterSubsidiary)));
         $query->when($this->filterStatus, fn($q) => $q->where('status_id', $this->filterStatus));
-        $query->when($this->filterDate, fn($q) => $q->whereDate('from_date', '=', \Carbon\Carbon::parse($this->filterDate)->format('Y-m-d')));
+        $query->when($this->filterDate, fn($q) => $q->whereDate('from_date', $this->filterDate));
+        $query->when($this->filterMonth, fn($q) => $q->whereMonth('from_date', $this->filterMonth));
+        $query->when($this->filterYear, fn($q) => $q->whereYear('from_date', $this->filterYear));
     }
 
     public function render()
     {
+        
+        $years = VisitRequest::selectRaw('EXTRACT(YEAR FROM from_date) as year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year');
+
+        $months = collect(range(1, 12))->mapWithKeys(function ($month) {
+            return [$month => \Carbon\Carbon::create()->month($month)->isoFormat('MMMM')];
+        });
+        
+        // Pastikan variabel $requests di-inisialisasi sebelum dikirim ke view
         $requests = $this->buildQuery()->paginate(10);
+
         $statuses = Status::all()->mapWithKeys(function ($status) {
             $color = match (strtolower($status->name)) {
                 'approved' => 'bg-green-100 text-green-800',
@@ -152,6 +187,8 @@ class RequestHistory extends Component
             'all_statuses' => Status::all(),
             'users' => User::orderBy('name')->get(),
             'statusColors' => $statuses,
+            'years' => $years,     
+            'months' => $months,
         ]);
     }
 }

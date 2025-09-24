@@ -9,6 +9,9 @@ use Illuminate\Support\Collection;
 
 class WorkflowService
 {
+    /**
+     * Menemukan workflow yang paling cocok untuk seorang requester dengan sistem skor.
+     */
     public function findBestWorkflowFor(User $requester): ?ApprovalWorkflow
     {
         $requesterProfile = $requester->profile;
@@ -35,31 +38,49 @@ class WorkflowService
 
         if ($matchingWorkflows->isEmpty()) return null;
 
-        return $matchingWorkflows->sortByDesc(fn ($workflow) => $workflow->conditions->count())->first();
+        return $matchingWorkflows->sortByDesc(function ($workflow) {
+            $score = 0;
+            foreach ($workflow->conditions as $condition) {
+                $score += match ($condition->condition_type) {
+                    'user' => 100,
+                    'department', 'subsidiary', 'role' => 10,
+                    'level' => 1,
+                    default => 0,
+                };
+            }
+            return $score;
+        })->first();
     }
 
-    public function findApproversFor(User $requester): Collection
+    /**
+     * Mencari approver berdasarkan progress request (menerima VisitRequest).
+     */
+    public function findApproversFor(VisitRequest $request): Collection
     {
+        $requester = $request->user;
+        if (!$requester) return collect();
+
         $bestWorkflow = $this->findBestWorkflowFor($requester);
         if (!$bestWorkflow) return collect();
 
-        $firstStep = $bestWorkflow->steps()->where('step', 1)->get();
-        if ($firstStep->isEmpty()) return collect();
+        $currentStepRules = $bestWorkflow->steps()->where('step', $request->current_step)->get();
+        if ($currentStepRules->isEmpty()) return collect();
 
         $approverIds = collect();
-        foreach ($firstStep as $step) {
+        foreach ($currentStepRules as $stepRule) {
             $query = User::query();
-            if ($step->approver_type === 'user') {
-                $query->where('id', $step->approver_id);
+            if ($stepRule->approver_type === 'user') {
+                $query->where('id', $stepRule->approver_id);
             } else {
-                $query->whereHas('profile', function ($q) use ($step, $requester) {
-                    if ($step->approver_type === 'level') {
-                        $q->where('level_id', $step->approver_id);
+                $query->whereHas('profile', function ($q) use ($stepRule, $requester) {
+                    if ($stepRule->approver_type === 'level') {
+                        $q->where('level_id', $stepRule->approver_id);
                     }
                     if ($requester->profile) {
-                        if ($step->scope === 'department') {
-                            $q->where('department_id', $requester->profile->department_id);
-                        } elseif ($step->scope === 'subsidiary') {
+                        if ($stepRule->scope === 'department') {
+                            $q->where('department_id', $requester->profile->department_id)
+                              ->where('subsidiary_id', $requester->profile->subsidiary_id);
+                        } elseif ($stepRule->scope === 'subsidiary') {
                             $q->where('subsidiary_id', $requester->profile->subsidiary_id);
                         }
                     } else {
@@ -72,6 +93,9 @@ class WorkflowService
         return User::whereIn('id', $approverIds->unique())->get();
     }
     
+    /**
+     * Mendapatkan ID request yang menunggu persetujuan seorang approver.
+     */
     public function getRequestIdsFor(User $approver): array
     {
         $pendingRequests = VisitRequest::with('user.profile', 'user.roles')
@@ -80,14 +104,9 @@ class WorkflowService
 
         $requestIdsForApprover = [];
 
-        // HAPUS TOTAL BLOK 'canApproveAll'. 
-        // Dashboard approval HARUS SELALU tunduk pada aturan workflow dinamis.
-
         foreach ($pendingRequests as $request) {
-            // Langsung jalankan logika inti untuk setiap request tanpa bypass.
-            $expectedApprovers = $this->findApproversFor($request->user);
-            
-            // Cek apakah user yang sedang login ($approver) ada di daftar approver yang sah.
+            // Memanggil findApproversFor dengan input yang benar (objek $request)
+            $expectedApprovers = $this->findApproversFor($request);
             if ($expectedApprovers->contains('id', $approver->id)) {
                 $requestIdsForApprover[] = $request->id;
             }

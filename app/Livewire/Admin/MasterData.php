@@ -9,6 +9,7 @@ use App\Models\Role;
 use App\Models\Subsidiary;
 use App\Models\Destination;
 use Livewire\WithPagination;
+use Livewire\Attributes\On;
 
 class MasterData extends Component
 {
@@ -68,11 +69,18 @@ class MasterData extends Component
         $this->showModal = false;
     }
 
+   #[On('delete-data')]
     public function delete($id)
     {
         $modelClass = $this->getModel();
-        $modelClass::findOrFail($id)->delete();
-        session()->flash('success', 'Data berhasil dihapus.');
+        // Lakukan pengecekan relasi sebelum menghapus
+        // try-catch adalah cara aman untuk menangani error foreign key
+        try {
+            $modelClass::findOrFail($id)->delete();
+            $this->dispatch('show-toast', type: 'success', message: 'Data berhasil dihapus.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            $this->dispatch('show-toast', type: 'error', message: 'Gagal! Data ini masih digunakan di tempat lain.');
+        }
     }
 
     public function render()

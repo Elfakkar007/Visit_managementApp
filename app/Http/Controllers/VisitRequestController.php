@@ -66,7 +66,6 @@ class VisitRequestController extends Controller
 
         $pendingStatus = Status::where('name', 'Pending')->firstOrFail();
         
-        // Logika untuk menentukan tujuan final
         $finalDestination = $validated['destination_option'] === 'other' 
             ? $validated['destination_custom'] 
             : $validated['destination_option'];
@@ -74,19 +73,22 @@ class VisitRequestController extends Controller
         $visitRequest = VisitRequest::create([
             'user_id'     => Auth::id(),
             'status_id'   => $pendingStatus->id,
-            'destination' => $finalDestination, // Simpan tujuan final
+            'destination' => $finalDestination,
             'purpose'     => $validated['purpose'],
             'from_date'   => $validated['from_date'],
             'to_date'     => $validated['to_date'],
         ]);
 
-        // Kirim notifikasi ke approver yang relevan
-        $approvers = Auth::user()->getApprovers();
+        $approvers = app(\App\Services\WorkflowService::class)->findApproversFor($visitRequest);
         if ($approvers->isNotEmpty()) {
-             SendVisitRequestNotification::dispatch($approvers, new \App\Notifications\NewVisitRequest($visitRequest));
+            SendVisitRequestNotification::dispatch($approvers, new \App\Notifications\NewVisitRequest($visitRequest));
         }
 
-        return redirect()->route('requests.my')->with('success', 'Permintaan kunjungan berhasil diajukan.');
+        // Ganti session menjadi dispatch toast
+        return redirect()->route('requests.my')->with('toast', [
+            'type' => 'success',
+            'message' => 'Permintaan kunjungan berhasil diajukan.'
+        ]);
     }
 
     /**

@@ -21,10 +21,7 @@ class VisitRequestPolicy
         return $user->id === $visitRequest->user_id;
     }
 
-    /**
-     * Tentukan apakah user bisa menyetujui atau menolak sebuah request.
-     * --- VERSI DIPERKUAT (ZERO TRUST) ---
-     */
+    
     public function approve(User $user, VisitRequest $visitRequest): bool
     {
         // Cek izin dasar untuk efisiensi
@@ -33,13 +30,11 @@ class VisitRequestPolicy
         }
 
         // Validasi ulang dengan WorkflowService sebagai sumber kebenaran absolut
-        $validApprovers = app(WorkflowService::class)->findApproversFor($visitRequest->user);
+        $validApprovers = app(WorkflowService::class)->findApproversFor($visitRequest);
 
         // Aksi hanya diizinkan jika user saat ini ada di dalam daftar approver yang sah
-        // menurut workflow engine untuk request ini.
         return $validApprovers->contains('id', $user->id);
     }
-
     public function cancel(User $user, VisitRequest $visitRequest): bool
     {
         return $user->id === $visitRequest->user_id && $visitRequest->status->name === 'Pending';

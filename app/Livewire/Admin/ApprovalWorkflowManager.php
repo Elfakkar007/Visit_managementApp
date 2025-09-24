@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Spatie\Permission\Models\Role;
+use Livewire\Attributes\On;
 
 class ApprovalWorkflowManager extends Component
 {
@@ -153,11 +154,11 @@ class ApprovalWorkflowManager extends Component
         $this->dispatch('workflowSaved');
     }
     
+     #[On('delete-workflow')]
     public function delete($id)
     {
         ApprovalWorkflow::findOrFail($id)->delete();
         $this->dispatch('show-toast', type: 'success', message: 'Alur approval berhasil dihapus.');
-        $this->dispatch('workflowSaved');
     }
 
     public function render()

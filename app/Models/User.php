@@ -10,10 +10,11 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasRoles, SoftDeletes;
 
     // ... (properti $fillable, $hidden, casts() biarkan seperti aslinya)
     protected $fillable = [
@@ -46,12 +47,5 @@ class User extends Authenticatable
 
     public function approvals(): HasMany {
         return $this->hasMany(VisitRequest::class, 'approved_by');
-    }
-
-    
-
-    public function getApprovers()
-    {
-        return app(\App\Services\WorkflowService::class)->findApproversFor($this);
     }
 }

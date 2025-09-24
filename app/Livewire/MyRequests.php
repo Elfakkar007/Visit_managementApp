@@ -3,9 +3,11 @@
 namespace App\Livewire;
 
 use App\Models\VisitRequest;
+use App\Models\Status;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\Attributes\On;
 
 class MyRequests extends Component
 {
@@ -14,26 +16,35 @@ class MyRequests extends Component
     public $showDetailModal = false;
     public $selectedRequest;
 
+    #[On('cancel-request')]
+    public function cancel($requestId)
+    {
+        $visitRequest = VisitRequest::where('id', $requestId)->where('user_id', Auth::id())->firstOrFail();
+        $this->authorize('cancel', $visitRequest);
+
+        if ($visitRequest->status->name !== 'Pending') {
+            $this->dispatch('show-toast', type: 'error', message: 'Hanya permintaan yang pending yang bisa dibatalkan.');
+            return;
+        }
+
+        $cancelledStatus = Status::where('name', 'Cancelled')->firstOrFail();
+        $visitRequest->update(['status_id' => $cancelledStatus->id]);
+
+        $this->dispatch('show-toast', type: 'success', message: 'Permintaan berhasil dibatalkan.');
+    }
+
     public function viewDetail($requestId)
     {
-        // Eager load semua relasi yang dibutuhkan untuk modal detail
-        $this->selectedRequest = VisitRequest::with([
-            'user.profile.department',
-            'user.profile.subsidiary',
-            'status',
-            'approver'
-        ])
-        ->where('id', $requestId)
-        ->where('user_id', Auth::id())
-        ->firstOrFail();
-            
+        $this->selectedRequest = VisitRequest::with(['user.profile.department', 'status', 'approver'])
+            ->where('id', $requestId)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
         $this->showDetailModal = true;
     }
 
     public function closeModal()
     {
-        $this->showDetailModal = false;
-        $this->selectedRequest = null;
+        $this->reset(['showDetailModal', 'selectedRequest']);
     }
 
     public function render()

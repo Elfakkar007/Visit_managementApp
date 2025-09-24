@@ -25,9 +25,6 @@
         <button wire:click="create" class="px-4 py-2 text-sm font-medium text-white bg-blue-700 rounded-lg hover:bg-blue-800">Tambah Role Baru</button>
     </div>
 
-    @if (session('success')) <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50">{{ session('success') }}</div> @endif
-    @if (session('error')) <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50">{{ session('error') }}</div> @endif
-
     <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
         <table class="w-full text-sm text-left text-gray-500">
             <thead class="text-xs text-gray-700 uppercase bg-gray-50">
@@ -42,11 +39,23 @@
                 <tr class="bg-white border-b hover:bg-gray-50">
                     <td class="px-6 py-4 font-medium text-gray-900">{{ $role->name }}</td>
                     <td class="px-6 py-4">{{ $role->users()->count() }}</td>
-                    <td class="px-6 py-4">
+                   <td class="px-6 py-4">
                         <div class="inline-flex rounded-md shadow-sm" role="group">
                             <a href="{{ route('admin.roles.edit', $role->id) }}" class="inline-flex items-center px-3 py-2 text-xs font-medium text-white bg-blue-600 rounded-l-lg hover:bg-blue-700">Edit Izin</a>
                             <button wire:click="edit({{ $role->id }})" class="inline-flex items-center px-3 py-2 text-xs font-medium text-white bg-gray-600 hover:bg-gray-700">Edit Nama</button>
-                            <button wire:click="delete({{ $role->id }})" wire:confirm="Anda yakin ingin menghapus peran ini?" class="inline-flex items-center px-3 py-2 text-xs font-medium text-white bg-red-600 rounded-r-lg hover:bg-red-700">Hapus</button>
+                            <button
+                                type="button"
+                                @click="$dispatch('open-confirmation-modal', {
+                                    title: 'Konfirmasi Hapus',
+                                    message: 'Anda yakin ingin menghapus peran \'{{ $role->name }}\'?',
+                                    confirmText: 'Ya, Hapus',
+                                    color: 'red',
+                                    livewireEvent: 'delete-role',
+                                    livewireParams: [{{ $role->id }}]
+                                })"
+                                class="inline-flex items-center px-3 py-2 text-xs font-medium text-white bg-red-600 rounded-r-lg hover:bg-red-700">
+                                Hapus
+                            </button>
                         </div>
                     </td>
                 </tr>
