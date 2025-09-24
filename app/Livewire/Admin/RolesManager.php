@@ -52,10 +52,11 @@ class RolesManager extends Component
         $this->dispatch('show-toast', type: 'success', message: 'Peran berhasil disimpan.');
     }
 
-      #[On('delete-role')]
-    public function delete($id)
+    #[On('delete-role')]
+    public function delete($requestId) // <-- PERBAIKAN DI SINI
     {
-        $role = Role::findOrFail($id);
+        // Gunakan $requestId yang sudah diperbaiki
+        $role = Role::findOrFail($requestId); 
         if ($role->name === 'Admin' || $role->users()->count() > 0) {
             $this->dispatch('show-toast', type: 'error', message: 'Peran Admin atau peran yang masih digunakan tidak dapat dihapus.');
             return;

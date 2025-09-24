@@ -5,7 +5,6 @@ namespace App\Livewire\Admin;
 use Livewire\Component;
 use App\Models\Department;
 use App\Models\Level;
-use App\Models\Role;
 use App\Models\Subsidiary;
 use App\Models\Destination;
 use Livewire\WithPagination;
@@ -31,7 +30,7 @@ class MasterData extends Component
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->resetPage(); // Reset paginasi saat ganti tab
+        $this->resetPage();
     }
 
     protected function getModel()
@@ -70,13 +69,12 @@ class MasterData extends Component
     }
 
    #[On('delete-data')]
-    public function delete($id)
+    public function delete($requestId) // Terima parameter sebagai 'requestId'
     {
         $modelClass = $this->getModel();
-        // Lakukan pengecekan relasi sebelum menghapus
-        // try-catch adalah cara aman untuk menangani error foreign key
         try {
-            $modelClass::findOrFail($id)->delete();
+            // Gunakan variabel 'requestId' yang sama di sini
+            $modelClass::findOrFail($requestId)->delete();
             $this->dispatch('show-toast', type: 'success', message: 'Data berhasil dihapus.');
         } catch (\Illuminate\Database\QueryException $e) {
             $this->dispatch('show-toast', type: 'error', message: 'Gagal! Data ini masih digunakan di tempat lain.');

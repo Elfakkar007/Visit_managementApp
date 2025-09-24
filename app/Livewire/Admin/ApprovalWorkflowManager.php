@@ -155,9 +155,9 @@ class ApprovalWorkflowManager extends Component
     }
     
      #[On('delete-workflow')]
-    public function delete($id)
+    public function delete($requestId)
     {
-        ApprovalWorkflow::findOrFail($id)->delete();
+        ApprovalWorkflow::findOrFail($requestId)->delete();
         $this->dispatch('show-toast', type: 'success', message: 'Alur approval berhasil dihapus.');
     }
 
