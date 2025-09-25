@@ -138,6 +138,11 @@ class ApprovalWorkflowManager extends Component
 
             foreach ($this->steps as $index => $step) {
                 foreach ($step['approvers'] as $approver) {
+
+                    if ($approver['type'] === 'user') {
+                        $approver['scope'] = 'global';
+                    }
+
                     $workflow->steps()->create([
                         'step' => $index + 1,
                         'approval_type' => $step['type'],

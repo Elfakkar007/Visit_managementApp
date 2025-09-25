@@ -11,10 +11,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\Traits\LogsActivity; 
+use Spatie\Activitylog\LogOptions;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasRoles, SoftDeletes;
+    use HasFactory, Notifiable, HasRoles, SoftDeletes, LogsActivity;
 
     // ... (properti $fillable, $hidden, casts() biarkan seperti aslinya)
     protected $fillable = [
@@ -47,5 +49,14 @@ class User extends Authenticatable
 
     public function approvals(): HasMany {
         return $this->hasMany(VisitRequest::class, 'approved_by');
+    }
+
+   public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'email'])
+            ->logOnlyDirty()
+            ->setDescriptionForEvent(fn(string $eventName) => "Pengguna {$this->name} telah di-{$eventName}")
+            ->dontSubmitEmptyLogs();
     }
 }

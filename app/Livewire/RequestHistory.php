@@ -14,6 +14,8 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\On;
+use App\Exports\VisitRequestsExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class RequestHistory extends Component
 {
@@ -159,6 +161,27 @@ class RequestHistory extends Component
         $query->when($this->filterDate, fn($q) => $q->whereDate('from_date', $this->filterDate));
         $query->when($this->filterMonth, fn($q) => $q->whereMonth('from_date', $this->filterMonth));
         $query->when($this->filterYear, fn($q) => $q->whereYear('from_date', $this->filterYear));
+    }
+
+    public function exportExcel()
+    {
+        // Hanya izinkan export jika dalam mode monitor/admin
+        if (!in_array($this->mode, ['monitor', 'admin'])) {
+            return;
+        }
+
+        // Ambil semua filter yang sedang aktif
+        $filters = [
+            'filterUser' => $this->filterUser,
+            'filterDepartment' => $this->filterDepartment,
+            'filterSubsidiary' => $this->filterSubsidiary,
+            'filterStatus' => $this->filterStatus,
+            'filterDate' => $this->filterDate,
+            'filterMonth' => $this->filterMonth,
+            'filterYear' => $this->filterYear,
+        ];
+        
+        return Excel::download(new VisitRequestsExport($filters), 'riwayat_perjalanan_dinas.xlsx');
     }
 
     public function render()

@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\On;
+use App\Jobs\SendVisitRequestNotification; 
+use App\Notifications\VisitRequestStatusUpdated;
 
 class MyRequests extends Component
 {
@@ -32,6 +34,13 @@ class MyRequests extends Component
 
         $cancelledStatusId = Status::getIdByName('Cancelled');
         $visitRequest->update(['status_id' => $cancelledStatusId]);
+
+
+        SendVisitRequestNotification::dispatch(
+            $visitRequest->user, 
+            new VisitRequestStatusUpdated($visitRequest->fresh())
+        );
+
         $this->dispatch('show-toast', [
                     'type' => 'success',
                     'message' => 'Permintaan berhasil dibatalkan.'

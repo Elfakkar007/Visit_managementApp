@@ -6,7 +6,6 @@ use App\Models\VisitRequest;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Notifications\Notification;
 
 class VisitRequestStatusUpdated extends Notification implements ShouldQueue
@@ -27,26 +26,32 @@ class VisitRequestStatusUpdated extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-         Log::info('--- Memulai pembuatan email untuk request ID: ' . $this->visitRequest->id);
         $status = $this->visitRequest->status->name;
         $destination = $this->visitRequest->destination;
         $url = route('requests.my');
         
-        $mail = (new MailMessage)
-                    ->subject("Status Permintaan Kunjungan Anda: {$status}")
-                    ->greeting('Halo, ' . $notifiable->name)
-                    ->line("Status permintaan kunjungan Anda ke **{$destination}** telah diperbarui menjadi **{$status}**.")
-                    ->action('Lihat Request Saya', $url);
+        $greeting = 'Halo, ' . $notifiable->name . '.';
+        $subject = '[VMS] Status Permintaan Anda: ' . $status;
 
-        // Tambahkan alasan penolakan jika ada
-        if ($status === 'Rejected' && !empty($this->visitRequest->rejection_reason)) {
-            $mail->line('Alasan Penolakan: ' . $this->visitRequest->rejection_reason);
+        $line = match ($status) {
+            'Approved'  => "Kabar baik! Permintaan kunjungan Anda ke **{$destination}** telah disetujui sepenuhnya.",
+            'Rejected'  => "Mohon maaf, permintaan kunjungan Anda ke **{$destination}** telah ditolak.",
+            'Cancelled' => "Permintaan kunjungan Anda ke **{$destination}** telah berhasil dibatalkan.",
+            default     => "Status permintaan kunjungan Anda ke **{$destination}** telah diperbarui menjadi **{$status}**."
+        };
+
+        $mail = (new MailMessage)
+                    ->subject($subject)
+                    ->greeting($greeting)
+                    ->line($line)
+                    ->action('Lihat Detail Request', $url);
+
+        // Tambahkan catatan dari approver jika ada
+        if (!empty($this->visitRequest->approver_note)) {
+            $mail->panel('Catatan dari Approver: ' . $this->visitRequest->approver_note);
         }
         
         $mail->line('Terima kasih.');
-
-        Log::info('--- Email untuk request ID: ' . $this->visitRequest->id . ' berhasil dibuat dan siap dikirim.');
-
 
         return $mail;
     }

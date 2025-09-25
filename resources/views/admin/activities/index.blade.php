@@ -7,6 +7,6 @@
 
     <div>
         {{-- Kita panggil komponen yang sudah ada dengan mode admin --}}
-        <livewire:request-history mode="admin" />
+        <livewire:admin.activity-log-viewer />
     </div>
 </x-admin-layout>

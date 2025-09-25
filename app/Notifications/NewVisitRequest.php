@@ -28,15 +28,15 @@ class NewVisitRequest extends Notification implements ShouldQueue
     {
         $requesterName = $this->visitRequest->user->name;
         $destination = $this->visitRequest->destination;
-        // Arahkan tombol ke halaman approval
         $url = route('requests.approval');
 
         return (new MailMessage)
-                    ->subject('Permintaan Kunjungan Baru dari ' . $requesterName)
-                    ->greeting('Halo,')
-                    ->line("Anda memiliki permintaan kunjungan baru yang perlu ditinjau dari **{$requesterName}**.")
-                    ->line("Tujuan Kunjungan: **{$destination}**.")
-                    ->action('Lihat & Proses Request', $url)
-                    ->line('Terima kasih telah menggunakan aplikasi kami!');
+            ->subject('[VMS] Permintaan Persetujuan Baru: ' . $requesterName)
+            ->greeting('Halo, ' . $notifiable->name . '!')
+            ->line('Anda memiliki satu permintaan kunjungan dinas baru yang membutuhkan tinjauan Anda.')
+            ->line('**Pemohon:** ' . $requesterName)
+            ->line('**Tujuan:** ' . $destination)
+            ->action('Lihat & Proses Permintaan', $url)
+            ->line('Mohon untuk segera ditinjau. Terima kasih.');
     }
 }

@@ -1,57 +1,70 @@
 <div>
- <div class="bg-white p-4 rounded-lg shadow-sm mb-6">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
-            {{-- Filter Non-Tanggal --}}
-            <div class="xl:col-span-1">
+<div>
+    @if(in_array($mode, ['monitor', 'admin']))
+    <div class="bg-white p-4 rounded-lg shadow-sm mb-6 space-y-4">
+        {{-- BARIS PERTAMA: 4 FILTER UTAMA --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
                 <label for="filterUser" class="block text-xs font-medium text-gray-600 mb-1">Pemohon</label>
                 <select wire:model.live="filterUser" id="filterUser" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                     <option value="">Semua</option>
                     @foreach($users as $user) <option value="{{ $user->id }}">{{ $user->name }}</option> @endforeach
                 </select>
             </div>
-            <div class="xl:col-span-1">
+            <div>
                 <label for="filterDepartment" class="block text-xs font-medium text-gray-600 mb-1">Departemen</label>
                 <select wire:model.live="filterDepartment" id="filterDepartment" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                     <option value="">Semua</option>
                     @foreach($departments as $department) <option value="{{ $department->id }}">{{ $department->name }}</option> @endforeach
                 </select>
             </div>
-            <div class="xl:col-span-1">
+            <div>
                 <label for="filterSubsidiary" class="block text-xs font-medium text-gray-600 mb-1">Subsidiary</label>
                 <select wire:model.live="filterSubsidiary" id="filterSubsidiary" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                     <option value="">Semua</option>
                     @foreach($subsidiaries as $subsidiary) <option value="{{ $subsidiary->id }}">{{ $subsidiary->name }}</option> @endforeach
                 </select>
             </div>
-            <div class="xl:col-span-1">
+            <div>
                 <label for="filterStatus" class="block text-xs font-medium text-gray-600 mb-1">Status</label>
                 <select wire:model.live="filterStatus" id="filterStatus" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                     <option value="">Semua</option>
                     @foreach($all_statuses as $status) <option value="{{ $status->id }}">{{ $status->name }}</option> @endforeach
                 </select>
             </div>
+        </div>
 
-            {{-- Filter Tanggal yang Baru --}}
-            <div class="xl:col-span-1">
+        {{-- BARIS KEDUA: 3 FILTER TANGGAL & TOMBOL EXPORT --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
                 <label for="filterYear" class="block text-xs font-medium text-gray-600 mb-1">Tahun</label>
                 <select wire:model.live="filterYear" id="filterYear" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                     <option value="">Semua</option>
                     @foreach($years as $year) <option value="{{ $year }}">{{ $year }}</option> @endforeach
                 </select>
             </div>
-            <div class="xl:col-span-1">
+            <div>
                 <label for="filterMonth" class="block text-xs font-medium text-gray-600 mb-1">Bulan</label>
                 <select wire:model.live="filterMonth" id="filterMonth" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                     <option value="">Semua</option>
                     @foreach($months as $num => $name) <option value="{{ $num }}">{{ $name }}</option> @endforeach
                 </select>
             </div>
-            <div class="xl:col-span-1">
+            <div>
                 <label for="filterDate" class="block text-xs font-medium text-gray-600 mb-1">Tanggal Spesifik</label>
                 <input wire:model.live="filterDate" id="filterDate" type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
             </div>
+            {{-- Tombol Export dipindahkan ke kolom terakhir agar sejajar --}}
+            <div class="flex items-end">
+                <button wire:click="exportExcel" class="w-full inline-flex items-center justify-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm font-medium">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Export
+                </button>
+            </div>
         </div>
     </div>
+    @endif
+
     {{-- MODAL DETAIL DENGAN AKSI APPROVE/REJECT --}}
     @if ($showDetailModal && $selectedRequest)
     <div class="fixed inset-0 z-50 flex justify-center items-center w-full h-full bg-black bg-opacity-50 backdrop-blur-sm">
@@ -194,4 +207,5 @@
         });
     </script>
     @endpush
+</div>
 </div>

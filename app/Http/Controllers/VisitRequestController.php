@@ -53,7 +53,7 @@ class VisitRequestController extends Controller
      */
     public function store(Request $request)
     {
-        $this->authorize('create visit requests');
+         $this->authorize('create visit requests');
     
         $validated = $request->validate([
             'destination_option' => 'required|string',
@@ -63,7 +63,7 @@ class VisitRequestController extends Controller
             'to_date'     => 'required|date|after_or_equal:from_date',
         ]);
 
-       $pendingStatusId = Status::getIdByName('Pending');
+        $pendingStatus = Status::where('name', 'Pending')->firstOrFail();
         
         $finalDestination = $validated['destination_option'] === 'other' 
             ? $validated['destination_custom'] 
@@ -71,7 +71,7 @@ class VisitRequestController extends Controller
 
         $visitRequest = VisitRequest::create([
             'user_id'     => Auth::id(),
-            'status_id'   => $pendingStatusId,
+            'status_id'   => $pendingStatus->id,
             'destination' => $finalDestination,
             'purpose'     => $validated['purpose'],
             'from_date'   => $validated['from_date'],
@@ -88,6 +88,4 @@ class VisitRequestController extends Controller
             'message' => 'Permintaan kunjungan berhasil diajukan.'
         ]);
     }
-
-    // METHOD approve(), reject(), cancel(), dan sendUpdateNotification() DIHAPUS DARI SINI
 }
