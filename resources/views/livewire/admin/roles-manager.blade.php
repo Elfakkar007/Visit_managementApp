@@ -38,11 +38,11 @@
                 @forelse($roles as $role)
                 <tr class="bg-white border-b hover:bg-gray-50">
                     <td class="px-6 py-4 font-medium text-gray-900">{{ $role->name }}</td>
-                    <td class="px-6 py-4">{{ $role->users()->count() }}</td>
+                   <td class="px-6 py-4">{{ $role->users_count }}</td>
                    <td class="px-6 py-4">
                         <div class="inline-flex rounded-md shadow-sm" role="group">
                             <a href="{{ route('admin.roles.edit', $role->id) }}" class="inline-flex items-center px-3 py-2 text-xs font-medium text-white bg-blue-600 rounded-l-lg hover:bg-blue-700">Edit Izin</a>
-                            <button wire:click="edit({{ $role->id }})" class="inline-flex items-center px-3 py-2 text-xs font-medium text-white bg-gray-600 hover:bg-gray-700">Edit Nama</button>
+                            <button wire:click="edit({{ $role->id }})" class="inline-flex items-center px-3 py-2 text-xs font-medium text-white bg-gray-600 hover:bg-gray-700 " @if($role->name === 'Admin') disabled @endif>Edit Nama</button>
                             <button
                                 type="button"
                                 @click="$dispatch('open-confirmation-modal', {
@@ -53,7 +53,7 @@
                                     livewireEvent: 'delete-role',
                                     livewireParams: [{{ $role->id }}]
                                 })"
-                                class="inline-flex items-center px-3 py-2 text-xs font-medium text-white bg-red-600 rounded-r-lg hover:bg-red-700">
+                                class="inline-flex items-center px-3 py-2 text-xs font-medium text-white bg-red-600 rounded-r-lg hover:bg-red-700"@if($role->name === 'Admin') disabled @endif>
                                 Hapus
                             </button>
                         </div>

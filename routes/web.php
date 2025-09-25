@@ -41,7 +41,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Modul Resepsionis
-    Route::middleware('role:Resepsionis')->prefix('receptionist')->name('receptionist.')->group(function() {
+    Route::middleware('can:use scanner')->prefix('receptionist')->name('receptionist.')->group(function()  {
         Route::get('/scanner', [ReceptionistController::class, 'scanner'])->name('scanner');
         Route::get('/history', [ReceptionistController::class, 'history'])->name('history');
         Route::get('/guest-status', [ReceptionistController::class, 'guestStatus'])->name('guestStatus');
@@ -63,6 +63,7 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/activities', fn() => view('admin.activities.index'))->name('activities.index');
     Route::get('/guests/status', [GuestManagementController::class, 'status'])->name('guests.status');
     Route::get('/guests/history', [GuestManagementController::class, 'history'])->name('guests.history');
+    Route::get('/requests/approval', [App\Http\Controllers\VisitRequestController::class, 'approval'])->name('requests.approval');
 });
 
 require __DIR__.'/auth.php';

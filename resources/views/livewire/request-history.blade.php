@@ -138,7 +138,7 @@
                                 <button wire:click="viewDetail({{ $request->id }})" type="button" class="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-900 bg-gray-300 rounded-s-lg hover:bg-gray-100">
                                     Detail
                                 </button>
-                                @if($mode === 'approval' && $request->status->name === 'Pending')
+                               @if(in_array($mode, ['approval', 'admin_approval']) && $request->status->name === 'Pending')
                                     @can('approve', $request)
                                         <button type="button" 
                                             @click="$dispatch('open-confirmation-modal', {

@@ -1,15 +1,15 @@
-{{-- File Baru: resources/views/layouts/partials/app-sidebar.blade.php --}}
+{{-- File: resources/views/layouts/partials/app-sidebar.blade.php (Setelah Diperbaiki) --}}
 <aside id="app-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
-    <div class="h-full px-3 py-4 overflow-y-auto bg-gray-50">
+    {{-- 1. Tambahkan class 'flex flex-col' di sini --}}
+    <div class="h-full px-3 py-4 overflow-y-auto bg-gray-50 flex flex-col">
         <a href="{{ route('dashboard') }}" class="flex items-center ps-2.5 mb-5">
             <img src="{{ asset('images/logo-sidebar.png') }}" class="w-full h-auto object-contain px-4" alt="Satoria VMS Logo" />
- 
         </a>
-        <ul class="space-y-2 font-medium">
-         
+
+        {{-- 2. Tambahkan class 'flex-grow' pada <ul> --}}
+        <ul class="space-y-2 font-medium flex-grow">
             @can('create visit requests')
             <li>
-                {{-- Link ini akan aktif saat di halaman 'dashboard', 'requests.my', atau 'requests.create' --}}
                 <a href="{{ route('requests.my') }}" 
                 class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group {{ request()->routeIs(['dashboard', 'requests.my', 'requests.create']) ? 'bg-gray-200' : '' }}">
                     <span class="text-xl">✈️</span>
@@ -17,7 +17,7 @@
                 </a>
             </li>
             @endcan
-                        
+
             @can('approve visit requests')
             <li>
                 <a href="{{ route('requests.approval') }}" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group {{ request()->routeIs('requests.approval') ? 'bg-gray-200' : '' }}">
@@ -67,15 +67,15 @@
                 </a>
             </li>
             @endrole
-             <li>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="w-full flex justify-center py-2 text-sm font-medium rounded-lg text-red-700 border border-red-700 hover:bg-red-800 hover:text-white focus:ring-4 focus:outline-none focus:ring-red-300 transition-colors duration-150 dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900">
-                        <span class="tracking-widest whitespace-nowrap">Log Out</span>
-                    </button>
-
-                </form>
-            </li>
         </ul>
+
+        {{-- 3. Form Log Out sekarang berada di luar <ul> --}}
+        <form method="POST" action="{{ route('logout') }}" class="pt-2">
+            @csrf
+            <button type="submit" class="w-full flex items-center justify-center p-2 text-sm font-medium text-red-700 border border-red-700 rounded-lg hover:bg-red-700 hover:text-white transition-colors duration-150">
+                <svg class="w-5 h-5 me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                <span>Log Out</span>
+            </button>
+        </form>
     </div>
 </aside>

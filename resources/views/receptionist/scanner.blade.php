@@ -1,5 +1,8 @@
-{{-- Pastikan ini menggunakan layout utama Anda, misal <x-app-layout> --}}
-<x-app-layout>
+@php
+    $layout = Auth::user()->hasRole('Admin') ? 'admin-layout' : 'app-layout';
+@endphp
+
+<x-dynamic-component :component="$layout">
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             Scanner Check-in / Check-out Tamu
@@ -139,4 +142,4 @@
         });
     </script>
     @endpush
-</x-app-layout>
+</x-dynamic-component>

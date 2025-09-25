@@ -60,10 +60,10 @@
             <dt class="font-medium text-gray-500">Diproses oleh (Approver)</dt>
             <dd class="mt-1 text-gray-900">{{ $request->approver->name ?? '-' }}</dd>
         </div>
-        @if($request->rejection_reason)
+         @if($request->approver_note)
         <div class="sm:col-span-2">
-            <dt class="font-medium text-red-600">Catatan dari Approver:</dt>
-            <dd class="mt-1 text-sm text-gray-800 bg-red-50 p-3 rounded-md">{{ $request->rejection_reason }}</dd>
+            <dt class="font-medium text-gray-500">Catatan dari Approver:</dt>
+            <dd class="mt-2 text-sm text-gray-800 bg-gray-50 p-3 rounded-md border whitespace-pre-wrap">{{ $request->approver_note }}</dd>
         </div>
         @endif
     </dl>

@@ -47,9 +47,9 @@ class RoleController extends Controller
     public function edit(Role $role)
     {
         // Mencegah role 'Admin' diedit
-        if ($role->name === 'Admin') {
-            return redirect()->route('admin.roles.index')->with('error', 'Peran Admin tidak dapat diedit.');
-        }
+        // if ($role->name === 'Admin') {
+        //     return redirect()->route('admin.roles.index')->with('error', 'Peran Admin tidak dapat diedit.');
+        // }
         $permissions = Permission::orderBy('name')->get();
         return view('admin.roles.edit', compact('role', 'permissions'));
     }

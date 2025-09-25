@@ -74,8 +74,8 @@ class RolesManager extends Component
 
     public function render()
     {
-        $roles = Role::where('name', '!=', 'Admin')->orderBy('name')->paginate(10);
-        return view('livewire.admin.roles-manager', [
+       $roles = Role::withCount('users')->orderBy('name')->paginate(10);
+       return view('livewire.admin.roles-manager', [
             'roles' => $roles
         ]);
     }

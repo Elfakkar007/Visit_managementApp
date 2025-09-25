@@ -131,6 +131,11 @@ class RequestHistory extends Component
             case 'monitor':
                  $this->authorize('view monitor page');
                 break;
+
+            case 'admin_approval':
+            $this->authorize('approve visit requests');
+            break;
+
         }
 
         $this->applyUiFilters($query);

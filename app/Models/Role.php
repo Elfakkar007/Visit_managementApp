@@ -2,19 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\Permission\Models\Role as SpatieRole;
 
-class Role extends Model
+class Role extends SpatieRole
 {
-    use HasFactory;
-    
-    protected $guarded = ['id'];
-
-    // Satu role bisa dimiliki oleh banyak profil pengguna
-    public function userProfiles(): HasMany
-    {
-        return $this->hasMany(UserProfile::class);
-    }
+    // Biarkan bagian dalam kelas ini kosong untuk saat ini
 }

@@ -76,10 +76,11 @@
                             <dd class="mt-1 text-gray-900">{{ $selectedRequest->approver->name ?? '-' }}</dd>
                         </div>
                         {{-- Tampilkan catatan/alasan penolakan jika ada --}}
-                        @if($selectedRequest->rejection_reason)
+                       {{-- Tampilkan catatan/alasan penolakan jika ada --}}
+                        @if($selectedRequest->approver_note)
                         <div class="sm:col-span-2">
-                            <dt class="font-medium text-red-600">Catatan dari Approver:</dt>
-                            <dd class="mt-1 text-sm text-gray-800 bg-red-50 p-3 rounded-md">{{ $selectedRequest->rejection_reason }}</dd>
+                            <dt class="font-medium text-gray-500">Catatan dari Approver:</dt>
+                            <dd class="mt-2 text-sm text-gray-800 bg-gray-50 p-3 rounded-md border whitespace-pre-wrap">{{ $selectedRequest->approver_note }}</dd>
                         </div>
                         @endif
                     </dl>

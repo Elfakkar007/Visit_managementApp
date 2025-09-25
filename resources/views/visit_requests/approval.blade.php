@@ -1,4 +1,8 @@
-<x-app-layout>
+@php
+    $layout = Auth::user()->hasRole('Admin') ? 'admin-layout' : 'app-layout';
+@endphp
+
+<x-dynamic-component :component="$layout">
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             {{ __('Dashboard Approval') }}
@@ -17,4 +21,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+</x-dynamic-component>
