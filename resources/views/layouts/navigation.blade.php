@@ -15,6 +15,9 @@
 
             <!-- SISI KANAN: Info Profil & Tombol Logout -->
             <div class="flex items-center ms-6 space-x-4">
+                   @can('use scanner')
+                    @livewire('receptionist.overdue-guests-notifier')
+                @endcan
                 <!-- Info Profil -->
                 <div class="hidden sm:flex sm:items-center sm:space-x-2">
                     <div class="font-medium text-base text-gray-800 text-right">{{ Auth::user()->name }}</div>

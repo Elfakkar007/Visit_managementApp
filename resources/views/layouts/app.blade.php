@@ -67,6 +67,5 @@
         <x-toast-notification />
         <x-confirmation-modal />
         <x-loading-indicator />
-
     </body>
 </html>

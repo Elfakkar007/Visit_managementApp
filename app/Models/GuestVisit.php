@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class GuestVisit extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
     
     protected $guarded = ['id'];
 
@@ -22,6 +24,15 @@ class GuestVisit extends Model
         'time_in' => 'datetime',
         'time_out' => 'datetime',
     ];
+
+      public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['status', 'visit_destination', 'destination_person_name']) // Sesuaikan field yang ingin dilog
+            ->setDescriptionForEvent(fn(string $eventName) => "Data kunjungan tamu {$this->guest?->name} telah di-{$eventName}")
+            ->dontSubmitEmptyLogs()
+            ->logOnlyDirty();
+    }
     // -------------------------
 
     public function guest(): BelongsTo

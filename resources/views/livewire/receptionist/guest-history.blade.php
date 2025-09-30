@@ -83,6 +83,7 @@
                         <tr>
                             <th class="px-6 py-3">Tamu</th>
                             <th class="px-6 py-3 hidden sm:table-cell">Tujuan</th>
+                            <th class="px-6 py-3 hidden md:table-cell">Yang Dituju</th>
                             <th class="px-6 py-3">Waktu Kunjungan</th>
                             <th class="px-6 py-3 hidden md:table-cell">Status</th>
                             <th class="px-6 py-3">Aksi</th>
@@ -96,6 +97,7 @@
                                 <div class="text-sm text-gray-500">{{ $visit->guest->company }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden sm:table-cell">{{ $visit->visit_destination ?? '-' }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">{{ $visit->destination_person_name ?? '-' }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 <div><span class="font-medium">In:</span> {{ $visit->time_in ? $visit->time_in->format('d M Y, H:i') : '-' }}</div>
                                 <div><span class="font-medium">Out:</span> {{ $visit->time_out ? $visit->time_out->format('d M Y, H:i') : '-' }}</div>

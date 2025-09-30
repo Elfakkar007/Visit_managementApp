@@ -7,12 +7,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File; 
 use Illuminate\Support\Facades\Storage; 
+use App\Models\Department;
 
 class ReceptionistController extends Controller
 {
     public function scanner()
     {
-        return view('receptionist.scanner');
+         $departments = Department::orderBy('name')->get();
+        return view('receptionist.scanner', compact('departments'));
     }
 
     public function getVisitStatus($uuid)
@@ -21,6 +23,10 @@ class ReceptionistController extends Controller
 
         if (!$visit) {
             return response()->json(['status' => 'error', 'message' => 'Kode QR tidak valid.']);
+        }
+
+        if (!$visit->created_at->isToday()) {
+             return response()->json(['status' => 'error', 'message' => 'Kode QR sudah kadaluarsa.']);
         }
 
         switch ($visit->status) {
@@ -37,21 +43,39 @@ class ReceptionistController extends Controller
 
     public function performCheckIn(Request $request)
     {
-        $request->validate(['uuid' => 'required|exists:guest_visits,uuid', 'visit_destination' => 'required|string|max:255']);
-        $visit = GuestVisit::where('uuid', $request->uuid)->firstOrFail();
+        // --- PERBARUI VALIDASI ---
+        $validated = $request->validate([
+            'uuid' => 'required|exists:guest_visits,uuid',
+            'destination_department_id' => 'required|exists:departments,id',
+            'destination_person_name' => 'required|string|max:255',
+            'notification_duration_hours' => 'required|integer|min:1|max:24', 
+        ]);
+
+        $visit = GuestVisit::where('uuid', $validated['uuid'])->firstOrFail();
 
         if ($visit->status === 'waiting_check_in') {
-            $visit->update(['status' => 'checked_in', 'time_in' => now(), 'checked_in_by' => Auth::id(), 'visit_destination' => $request->visit_destination]);
+            $department = Department::find($validated['destination_department_id']);
+
+            $visit->update([
+                'status' => 'checked_in',
+                'time_in' => now(),
+                'checked_in_by' => Auth::id(),
+                'visit_destination' => $department->name,
+                'destination_department_id' => $validated['destination_department_id'],
+                'destination_person_name' => $validated['destination_person_name'],
+                'notification_duration_hours' => $validated['notification_duration_hours'],
+            ]);
+
             return response()->json(['status' => 'check_in_success', 'message' => 'Check-in berhasil untuk: ' . $visit->guest->name]);
         }
         return response()->json(['status' => 'error', 'message' => 'Gagal check-in.'], 422);
     }
 
     public function guestStatus()
-{
-    // Ambil data tamu yang statusnya 'waiting_check_in' atau 'checked_in'
-     return view('receptionist.guest-status');
-}
+    {
+       
+        return view('receptionist.guest-status');
+    }
 
 
     public function history()
@@ -66,13 +90,16 @@ class ReceptionistController extends Controller
             abort(404);
         }
 
-        // Ambil path lengkap ke file
-        $path = Storage::disk('public')->path($visit->ktp_photo_path);
-        
-        // Ambil tipe mime file (misal: image/jpeg)
-        $mime = File::mimeType($path);
+        activity()
+        ->performedOn($visit)
+        ->causedBy(Auth::user())
+        ->log('Melihat foto KTP tamu: ' . $visit->guest->name);
 
-        // Kembalikan file sebagai response dengan header yang benar
-        return response()->file($path, ['Content-Type' => $mime]);
+        $path = Storage::disk('public')->path($visit->ktp_photo_path);
+        $file = File::get($path);
+        $type = File::mimeType($path);
+
+        return response($file, 200)->header('Content-Type', $type)
+        ->header('Content-Disposition', 'inline; filename="ktp.jpg"');
     }
 }

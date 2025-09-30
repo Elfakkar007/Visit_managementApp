@@ -45,7 +45,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/scanner', [ReceptionistController::class, 'scanner'])->name('scanner');
         Route::get('/history', [ReceptionistController::class, 'history'])->name('history');
         Route::get('/guest-status', [ReceptionistController::class, 'guestStatus'])->name('guestStatus');
-        Route::get('/get-visit-status/{uuid}', [ReceptionistController::class, 'getVisitStatus'])->name('getVisitStatus');
+        Route::get('/get-visit-status/{uuid}', [ReceptionistController::class, 'getVisitStatus'])->name('getVisitStatus')->middleware('throttle:15,1');
         Route::post('/perform-check-in', [ReceptionistController::class, 'performCheckIn'])->name('performCheckIn');
         Route::get('/visits/{visit}/ktp', [ReceptionistController::class, 'showKtpImage'])->name('showKtpImage');
     });

@@ -17,12 +17,15 @@ class GuestVisitController extends Controller
     }
 
     public function store(Request $request)
-    {
+    { 
         $validated = $request->validate([
             'name'      => 'required|string|max:255',
             'company'   => 'required|string|max:255',
-            'phone'     => 'required|string|max:20',
+            'phone'     => 'required|numeric|digits_between:10,15', // Diubah menjadi numeric
             'ktp_photo' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        ], [
+            'phone.numeric' => 'Nomor telepon harus berupa angka.',
+            'phone.digits_between' => 'Nomor telepon harus antara 10 hingga 15 digit.',
         ]);
 
         $guest = Guest::updateOrCreate(
@@ -47,15 +50,12 @@ class GuestVisitController extends Controller
     {
         $visit = GuestVisit::where('uuid', $uuid)->firstOrFail();
         
-        // 2. DATA YANG AKAN DIJADIKAN QR CODE
-        // Ini adalah data yang akan discan oleh resepsionis
+    
         $qrData = $visit->uuid;
 
-        // 3. GENERATE QR CODE SEBAGAI STRING SVG
-        // Format SVG lebih tajam dan ringan
         $qrCode = QrCode::size(250)->generate($qrData);
 
-        // 4. KIRIM DATA VISIT DAN QR CODE KE VIEW
+
         return view('guests.success', [
             'visit' => $visit,
             'qrCode' => $qrCode

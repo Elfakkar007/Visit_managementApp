@@ -70,6 +70,7 @@
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tamu</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tujuan</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Yang Dituju</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Waktu Check-in</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
@@ -83,6 +84,7 @@
                                 <div class="text-sm text-gray-500">{{ $visit->guest->company }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $visit->visit_destination ?? '-' }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">{{ $visit->destination_person_name ?? '-' }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $visit->time_in ? $visit->time_in->format('d M Y, H:i') : 'Belum Check-in' }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
