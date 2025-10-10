@@ -74,7 +74,7 @@ class RequestHistory extends Component
                             ]);
             } else {
                 $approvedStatusId = Status::getIdByName('Approved');
-                visitRequest->update([
+                $visitRequest->update([
                     'status_id' => $approvedStatusId,
                     'approved_by' => Auth::id(),
                     'processed_at' => now(),

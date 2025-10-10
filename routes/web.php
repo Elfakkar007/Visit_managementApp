@@ -31,13 +31,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/approval', [VisitRequestController::class, 'approval'])->name('approval')->middleware('can:approve visit requests');
         Route::get('/monitor', [VisitRequestController::class, 'monitor'])->name('monitor')->middleware('can:view monitor page');
         
-        // RUTE-RUTE YANG DIHAPUS: approve, reject, cancel
+        
         
         Route::middleware('can:create visit requests')->group(function() {
             Route::get('/my-requests', [VisitRequestController::class, 'myRequests'])->name('my');
             Route::get('/create', [VisitRequestController::class, 'create'])->name('create');
             Route::post('/', [VisitRequestController::class, 'store'])->name('store');
+            Route::get('/{request}/print', [VisitRequestController::class, 'printSppd'])->name('print');
         });
+        
     });
 
     // Modul Resepsionis

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Activitylog\Traits\LogsActivity; 
 use Spatie\Activitylog\LogOptions;
 
@@ -41,4 +42,8 @@ class VisitRequest extends Model
     public function user(): BelongsTo { return $this->belongsTo(User::class, 'user_id'); } // Pembuat Request
     public function approver(): BelongsTo { return $this->belongsTo(User::class, 'approved_by'); } // Yang Approve
     public function status(): BelongsTo { return $this->belongsTo(Status::class); }
+    public function approvalLogs(): HasMany
+    {
+        return $this->hasMany(\App\Models\ApprovalLog::class)->orderBy('created_at', 'asc');
+    }
 }

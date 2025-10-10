@@ -49,8 +49,8 @@
         </div>
     </div>
 
-
-    <div class="py-12">
+    <!-- html5-qrcode -->
+    <!-- <div class="py-12">
         <div class="max-w-xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                 <p class="text-center text-gray-600 mb-4">Arahkan kamera ke QR Code tamu.</p>
@@ -58,135 +58,145 @@
                 <div id="scan-result" class="mt-4 text-center font-semibold"></div>
             </div>
         </div>
+    </div> -->
+
+        {{-- TAMBAHKAN KODE INI --}}
+    <div class="w-full max-w-md mx-auto bg-white p-6 rounded-lg shadow">
+        <h2 class="text-xl font-semibold text-center text-gray-700 mb-4">Scan QR Code Tamu</h2>
+        <p class="text-center text-gray-500 mb-6">Arahkan USB scanner ke QR code, atau ketik manual kode unik di bawah ini dan tekan Enter.</p>
+        
+        {{-- Form untuk menangkap input dari scanner --}}
+        <form id="scanner-form">
+            <label for="qr-code-input" class="sr-only">Kode QR</label>
+            <input 
+                type="text" 
+                id="qr-code-input"
+                class="block w-full px-4 py-3 text-lg text-center border-gray-300 rounded-md shadow-sm focus:ring-satoria-light focus:border-satoria-light" 
+                placeholder="Menunggu scan..."
+                autofocus {{-- Sangat Penting! Agar input ini selalu aktif --}}
+            >
+        </form>
+        <div class="text-center mt-4">
+            <i class="fas fa-barcode fa-3x text-gray-300"></i>
+        </div>
     </div>
-
 @push('scripts')
-    {{-- Library untuk QR Scanner --}}
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <script>
-        // Fungsi helper untuk memancarkan toast
-        function dispatchToast(message, type = 'success') {
-            window.dispatchEvent(new CustomEvent('show-toast', {
-                detail: { message: message, type: type }
-            }));
-        }
+<script>
+    // Fungsi helper untuk menampilkan notifikasi toast
+    function dispatchToast(message, type = 'success') {
+        window.dispatchEvent(new CustomEvent('show-toast', {
+            detail: { message: message, type: type }
+        }));
+    }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const resultContainer = document.getElementById('scan-result');
-            const modal = document.getElementById('checkInModal');
-            const checkInForm = document.getElementById('checkInForm');
-            const submitCheckInBtn = document.getElementById('submitCheckIn');
-            let isProcessing = false;
-            
-            // Buat instance scanner di luar agar bisa diakses fungsi lain
-            var html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: {width: 250, height: 250} });
+    document.addEventListener('DOMContentLoaded', function () {
+        const scannerForm = document.getElementById('scanner-form');
+        const qrCodeInput = document.getElementById('qr-code-input');
+        const modal = document.getElementById('checkInModal');
+        const checkInForm = document.getElementById('checkInForm');
+        const submitCheckInBtn = document.getElementById('submitCheckIn');
 
-            // --- FUNGSI BARU UNTUK MERESET SCANNER ---
-            function resetScanner() {
-                isProcessing = false;
-                // Cek status scanner sebelum render ulang untuk menghindari error
-                if (html5QrcodeScanner.getState() !== 1) { // 1 = SCANNING
-                    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-                }
-            }
-            
-            function onScanSuccess(decodedText, decodedResult) {
-                if (isProcessing) return;
-                isProcessing = true;
-                
-                // Hentikan pemindaian sementara
-                html5QrcodeScanner.pause();
-
-                fetch(`/receptionist/get-visit-status/${decodedText}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            // Jika response server error (cth: 404, 500), lempar error
-                            throw new Error('Server_Error');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        handleScanResponse(data);
-                    })
-                    .catch(error => {
-                        dispatchToast('Terjadi kesalahan koneksi atau QR tidak valid.', 'error');
-                        // Jeda sejenak lalu reset scanner
-                        setTimeout(resetScanner, 2500);
-                    });
-            }
-
-            // Fungsi ini bisa dikosongkan jika tidak ada perlakuan khusus
-            function onScanFailure(error) {
-                // console.warn(`QR error = ${error}`);
-            }
-
-            function handleScanResponse(data) {
-                const message = data.message;
-                const type = data.status.includes('success') ? 'success' : 'error';
-                
-                if (message) {
-                    dispatchToast(message, type);
-                }
-
-                switch (data.status) {
-                    case 'needs_check_in':
-                        document.getElementById('modalGuestName').textContent = data.guest_name;
-                        document.getElementById('modalUuid').value = data.uuid;
-                        modal.style.display = 'block';
-                        document.getElementById('destination_department_id').focus(); // Fokus ke field baru
-                        // isProcessing akan direset saat modal ditutup atau form disubmit
-                        break;
-                    
-                    // KONDISI YANG SEBELUMNYA ME-REFRESH HALAMAN
-                    case 'checked_out_success':
-                    case 'already_checked_out':
-                    case 'error':
-                        // Sekarang hanya mereset scanner setelah 2.5 detik
-                        setTimeout(resetScanner, 2500);
-                        break;
-                }
-            }
-
-            checkInForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const formData = new FormData(checkInForm);
-                submitCheckInBtn.disabled = true;
-                submitCheckInBtn.textContent = 'Memproses...';
-
-                fetch('{{ route("receptionist.performCheckIn") }}', {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 
-                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
-                        'Accept': 'application/json'
-                    }
-                })
+        // Fungsi yang hilang: untuk menghubungi server dan memeriksa status QR
+        function getVisitStatus(uuid) {
+            fetch(`/receptionist/get-visit-status/${uuid}`)
                 .then(response => {
-                    if (!response.ok) {
-                        return response.json().then(err => { throw err; });
-                    }
+                    if (!response.ok) throw new Error('Kode QR tidak valid atau terjadi error server.');
                     return response.json();
                 })
-                .then(data => {
-                    if (data.status === 'check_in_success') {
-                        modal.style.display = 'none';
-                        dispatchToast(data.message, 'success');
-                        setTimeout(() => location.reload(), 2000); // Reload setelah sukses check-in
-                    }
-                })
+                .then(data => handleScanResponse(data))
                 .catch(error => {
-                    dispatchToast(error.message || 'Gagal melakukan check-in.', 'error');
-                    submitCheckInBtn.disabled = false;
-                    submitCheckInBtn.textContent = 'Submit Check-in';
-                    // Reset scanner jika gagal submit
-                    resetScanner();
+                    dispatchToast(error.message, 'error');
+                    resetScannerInput(); // Reset input jika error
                 });
-            });
+        }
 
-            // Mulai scanning saat halaman dimuat
-            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        // Fungsi untuk menangani respons dari server
+        function handleScanResponse(data) {
+            const message = data.message;
+            const type = (data.status && data.status.includes('success')) ? 'success' : 'error';
+            
+            if (message) {
+                dispatchToast(message, type);
+            }
+
+            if (data.status === 'needs_check_in') {
+                // Mengisi data ke modal dan menampilkannya
+                document.getElementById('modalGuestName').textContent = data.guest_name;
+                document.getElementById('modalUuid').value = data.uuid;
+                modal.style.display = 'block';
+                document.getElementById('destination_department_id').focus();
+            }
+        }
+        
+        // Fungsi untuk mereset input scanner
+        function resetScannerInput() {
+            qrCodeInput.value = '';
+            qrCodeInput.focus();
+        }
+
+        // Event listener untuk form scanner (ini sudah benar)
+        scannerForm.addEventListener('submit', function (event) {
+            event.preventDefault(); 
+            const decodedText = qrCodeInput.value;
+            if (decodedText) {
+                // Panggil fungsi yang tadi kita buat
+                getVisitStatus(decodedText);
+            }
+            // Kosongkan input setelah submit
+            qrCodeInput.value = '';
         });
-    </script>
+
+        // Event listener untuk form check-in di dalam modal
+        checkInForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(checkInForm);
+            submitCheckInBtn.disabled = true;
+            submitCheckInBtn.textContent = 'Memproses...';
+
+            fetch('{{ route("receptionist.performCheckIn") }}', {
+                method: 'POST',
+                body: formData,
+                headers: { 
+                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'check_in_success') {
+                    modal.style.display = 'none';
+                    dispatchToast(data.message, 'success');
+                    resetScannerInput();
+                } else {
+                    throw new Error(data.message || 'Gagal melakukan check-in.');
+                }
+            })
+            .catch(error => {
+                dispatchToast(error.message, 'error');
+            })
+            .finally(() => {
+                submitCheckInBtn.disabled = false;
+                submitCheckInBtn.textContent = 'Submit Check-in';
+            });
+        });
+
+        // Event listener untuk memastikan input selalu fokus
+        document.body.addEventListener('click', function(e) {
+            // Hindari re-focus jika yang diklik ada di dalam modal
+            if (!modal.contains(e.target) && modal.style.display === 'none') {
+                qrCodeInput.focus();
+            }
+        });
+
+        // Menutup modal jika area luar diklik
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+                resetScannerInput();
+            }
+        }
+    });
+</script>
 @endpush
    
 </x-dynamic-component>

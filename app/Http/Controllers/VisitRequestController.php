@@ -8,6 +8,7 @@ use App\Models\Destination;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Jobs\SendVisitRequestNotification;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class VisitRequestController extends Controller
 {
@@ -87,5 +88,27 @@ class VisitRequestController extends Controller
             'type' => 'success',
             'message' => 'Permintaan kunjungan berhasil diajukan.'
         ]);
+    }
+
+    public function printSppd(VisitRequest $request)
+    {
+        $this->authorize('view', $request);
+
+        if ($request->status->name !== 'Approved') {
+            return back()->with('error', 'Hanya request yang sudah disetujui yang dapat dicetak.');
+        }
+
+        // Eager load semua relasi yang dibutuhkan oleh PDF di sini
+        $request->load([
+            'user.profile.level', 
+            'user.profile.department', 
+            'approvalLogs.approver.profile.level'
+        ]);
+
+        // Menggunakan library PDF yang sudah diinstal sebelumnya
+        $pdf = Pdf::loadView('visit_requests.sppd_pdf', ['request' => $request]);
+        $fileName = 'SPPD-' . $request->user->name . '-' . $request->id . '.pdf';
+
+        return $pdf->stream($fileName);
     }
 }

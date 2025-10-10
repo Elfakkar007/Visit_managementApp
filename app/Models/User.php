@@ -59,4 +59,5 @@ class User extends Authenticatable
             ->setDescriptionForEvent(fn(string $eventName) => "Pengguna {$this->name} telah di-{$eventName}")
             ->dontSubmitEmptyLogs();
     }
+   
 }

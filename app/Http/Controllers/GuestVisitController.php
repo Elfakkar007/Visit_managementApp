@@ -19,14 +19,13 @@ class GuestVisitController extends Controller
     public function store(Request $request)
     { 
         $validated = $request->validate([
-            'name'      => 'required|string|max:255',
-            'company'   => 'required|string|max:255',
-            'phone' => 'required|string|regex:/^(08|\+628)[0-9]{8,16}$/',
-            'ktp_photo' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-        ], [
-            'phone.numeric' => 'Nomor telepon harus berupa angka.',
-            'phone.digits_between' => 'Nomor telepon harus antara 10 hingga 15 digit.',
-        ]);
+        'name'      => 'required|string|max:255',
+        'company'   => 'required|string|max:255',
+        'phone'     => ['required', 'regex:/^(08|\+62|62)[0-9]{8,15}$/'], 
+        'ktp_photo' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+    ], [
+        'phone.regex' => 'Format nomor telepon tidak valid. Gunakan format 08..., +62..., atau 62...',
+    ]);
 
         $guest = Guest::updateOrCreate(
             ['phone' => $validated['phone']],
