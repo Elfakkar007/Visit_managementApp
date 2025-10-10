@@ -1,13 +1,13 @@
 <x-admin-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="font-bold text-xl text-gray-800 leading-tight">
             {{ __('Dashboard') }}
         </h2>
     </x-slot>
 
     <div>
         <!-- Kartu Statistik -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <div class="p-6 bg-white border border-gray-200 rounded-lg shadow">
                 <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900">{{ $totalUsers }}</h5>
                 <p class="font-normal text-gray-700">Total Pengguna</p>
@@ -27,7 +27,7 @@
         </div>
 
         <!-- Grafik -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div class="p-6 bg-white border border-gray-200 rounded-lg shadow">
                 <h5 class="text-lg font-semibold text-gray-900 mb-4">Request Perjalanan Dinas ({{ date('Y') }})</h5>
                 <canvas id="requestsChart"></canvas>

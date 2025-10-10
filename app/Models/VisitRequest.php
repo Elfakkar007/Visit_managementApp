@@ -15,7 +15,7 @@ class VisitRequest extends Model
     use HasFactory, LogsActivity;
     protected $guarded = ['id'];
     protected $casts = [
-        'approved_at' => 'datetime',
+        'processed_at' => 'datetime',
         'from_date' => 'datetime',
         'to_date' => 'datetime',
     ];

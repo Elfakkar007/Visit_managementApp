@@ -21,7 +21,7 @@ class GuestVisitController extends Controller
         $validated = $request->validate([
             'name'      => 'required|string|max:255',
             'company'   => 'required|string|max:255',
-            'phone'     => 'required|numeric|digits_between:10,15', // Diubah menjadi numeric
+            'phone' => 'required|string|regex:/^(08|\+628)[0-9]{8,16}$/',
             'ktp_photo' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ], [
             'phone.numeric' => 'Nomor telepon harus berupa angka.',
